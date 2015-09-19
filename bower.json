@@ -1,0 +1,15 @@
+{
+  "name": "JsLibrary",
+  "version": "1.0.0",
+  "main": "path/to/main.css",
+  "ignore": [
+    ".jshintrc",
+    "**/*.txt"
+  ],
+  "dependencies": {
+    "bluebird": "2.10.0",
+    "requirejs": "2.1.20",
+    "underscore": "1.8.3"
+  },
+  "devDependencies": {}
+}
