@@ -19,9 +19,6 @@ define([], function () {
     function remove(parent, child) {
         return parent.removeChild(child);
     }
-    function setHTML(parent, content) {
-        return parent.innerHTML = content;
-    }
     function findById(id) {
         return document.getElementById(id);
     }
@@ -31,12 +28,27 @@ define([], function () {
     function qs(selector) {
         return document.querySelector(selector);
     }    
+    function setHtml(nodeOrSelector, content) {
+        var node;
+        if (typeof nodeOrSelector === 'string') {
+            node = qs(nodeOrSelector);
+            if (node === null) {
+                throw new Error('No node found for selector "'+nodeOrSelector+'"');
+            }
+        } else {
+            node = nodeOrSelector;
+        }
+        node.innerHTML = content;
+        return node;
+    }
+
     return {
         createElement: createElement,
         appendRoot: appendRoot,
         append: append,
         remove: remove,
-        setHTML: setHTML,
+        setHTML: setHtml,
+        setHtml: setHtml,
         findById: findById,
         nodeForId: nodeForId,
         getById: findById,
