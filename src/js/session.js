@@ -203,7 +203,7 @@ define([
              * @returns {undefined} nothing
              */
             function setSessionCookie() {
-                if (this.sessionObject) {
+                if (sessionObject) {
                     var cookieString = makeSessionCookie();
                     Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');
                     // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
@@ -226,7 +226,7 @@ define([
              * @returns {SessionObject} the current session object.
              */
             function refreshSession() {
-                setSession(this.importSessionFromCookie());
+                setSession(importSessionFromCookie());
                 return sessionObject;
             }
 
@@ -310,7 +310,7 @@ define([
              * if there is no valid session cookie.
              */
             function importSessionFromCookie() {
-                var sessionCookie = Cookie.getItem(this.cookieName);
+                var sessionCookie = Cookie.getItem(cookieName);
 
                 if (!sessionCookie) {
                     return null;
@@ -325,7 +325,7 @@ define([
                 session.token = session.token.replace(/PIPESIGN/g, '|').replace(/EQUALSSIGN/g, '=');
 
                 // Ensure that we have localStorage.
-                var storageSessionString = localStorage.getItem(this.cookieName);
+                var storageSessionString = localStorage.getItem(cookieName);
                 if (!storageSessionString) {
                     Logger.logWarning('Local Storage Cookie missing -- resetting session');
                     removeSession();
@@ -457,7 +457,7 @@ define([
                                 if (!options.disableCookie) {
                                     setSessionCookie();
                                 }
-                                // options.success(this.makeKBaseSession());
+                                // options.success(makeKBaseSession());
                                 resolve(makeKBaseSession());
                             } else {
                                 reject(data.error_msg);
