@@ -18,7 +18,7 @@ define([
             var version = '0.2.0',
                 config = cfg || {},
                 cookieName = config.cookieName,
-                cookieMaxAge = config.cookieMaxAge || 3600,
+                cookieMaxAge = config.cookieMaxAge || 36000,
                 loginUrl = config.loginUrl,
                 sessionObject,
                 error;
@@ -325,12 +325,12 @@ define([
                 session.token = session.token.replace(/PIPESIGN/g, '|').replace(/EQUALSSIGN/g, '=');
 
                 // Ensure that we have localStorage.
-                var storageSessionString = localStorage.getItem(cookieName);
-                if (!storageSessionString) {
-                    Logger.logWarning('Local Storage Cookie missing -- resetting session');
-                    removeSession();
-                    return null;
-                }
+//                var storageSessionString = localStorage.getItem(cookieName);
+//                if (!storageSessionString) {
+//                    Logger.logWarning('Local Storage Cookie missing -- resetting session');
+//                    removeSession();
+//                    return null;
+//                }
 
                 var storageSession = JSON.parse(storageSessionString);
                 if (session.token !== storageSession.token) {
