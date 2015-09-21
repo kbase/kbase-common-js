@@ -551,7 +551,8 @@ define([
                 getUsername: getUsername,
                 getRealname: getRealname,
                 getSessionId: getSessionId,
-                getAuthToken: getAuthToken
+                getAuthToken: getAuthToken,
+                isLoggedIn: isLoggedIn
             };
         }
 
