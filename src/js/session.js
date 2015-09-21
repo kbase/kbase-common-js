@@ -332,12 +332,12 @@ define([
 //                    return null;
 //                }
 
-                var storageSession = JSON.parse(storageSessionString);
-                if (session.token !== storageSession.token) {
-                    Logger.logWarning('Local Storage Cookie token different than cookie token -- resetting session');
-                    removeSession();
-                    return null;
-                }
+//                var storageSession = JSON.parse(storageSessionString);
+//                if (session.token !== storageSession.token) {
+//                    Logger.logWarning('Local Storage Cookie token different than cookie token -- resetting session');
+//                    removeSession();
+//                    return null;
+//                }
 
                 // now we have a session object equivalent to the one returned by the auth service.
                 var newSession = {
