@@ -539,7 +539,7 @@ define([
 
             // Setup
 
-            setSession(importSessionFromCookie);
+            setSession(importSessionFromCookie());
 
 
             // API
