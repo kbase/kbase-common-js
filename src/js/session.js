@@ -1,81 +1,27 @@
 /*global define: true */
-/*jslint browser:true  vars: true */
+/*jslint browser:true  vars: true, white: true */
 /* NB: kb.config is used here rather than runtime because the session is loaded
  * as a singleton.
  * TODO: just create as a normal object, and the runtime will take care of creating
  * a singleton...
  */
-define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
-    function ($, Promise, Cookie, Config, Logger) {
+define([
+    'jquery',
+    'bluebird',
+    'kb_common_cookie',
+    'kb_common_logger'
+],
+    function ($, Promise, Cookie, Logger) {
         'use strict';
-        var Session = Object.create({}, {
-            // Property Constants
 
-            version: {
-                value: '0.1.0',
-                writable: false
-            },
-
-            /**
-             * The standard name of the KBase session cookie.
-             * 
-             * @const {string}
-             * @private
-             */
-            cookieName: {
-                value: 'kbase_session',
-                writable: false
-            },
-            /**
-             * The standard name of the KBase session cookie used in the Narrative.
-             * 
-             * @const {string}
-             * @private
-             */
-            narrCookieName: {
-                value: 'kbase_narr_session',
-                writable: false
-            },
-            // Property Variables
-
-            /**
-             * The span, from the instant a session cookie is created, after which the cookie will 
-             * be deleted from the browser. Corresponds to the max-age attribute of a cookie. 
-             * nb: this is set in @init from the configuration object.
-             * 
-             * @member {integer}
-             * @private
-             * 
-             */
-            cookieMaxAge: {
-                value: null,
-                writable: true
-            },
-
-            // Initializer
-
-            /**
-             * Initialize the object to a well defined starting state.
-             * This includes creating instance properties, initializing data, setting 
-             * default values.
-             * 
-             * @function init
-             * 
-             * @returns {Session} A reference to this object.                  
-             *                   
-             */
-            init: {
-                value: function () {
-                    // The sessionObject is created in this method.
-                    this.setSession(this.importSessionFromCookie());
-                    // 1 hour is the default cookie max age.
-                    this.cookieMaxAge = Config.getItem('ui.constants.session_max_age', 60 * 60);
-
-                    return this;
-                }
-            },
-            // API Methods
-
+        function factory(cfg) {
+            var version = '0.2.0',
+                config = cfg || {},
+                cookieName = config.cookieName,
+                cookieMaxAge = config.cookieMaxAge || 3600,
+                loginUrl = config.loginUrl,
+                sessionObject,
+                error;
 
             // Implementation Methods
 
@@ -102,134 +48,9 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * 
              */
 
-            /**
-             * Attempt to set the internal session object from the given 
-             * session object.
-             * 
-             * @function setSession
-             * @private
-             * 
-             * @param {SessionObject} obj - a session object
-             * @returns {undefined}
-             */
-            setSession: {
-                value: function (obj) {
-                    if (this.validateSession(obj)) {
-                        this.sessionObject = obj;
-                    } else {
-                        this.sessionObject = null;
-                    }
-                }
-            },
-            /**
-             * Extract the cookie from the browser environment, parse it, and 
-             * validate it. This is the canonical interface betweek KBase ui
-             * code and browser authentication.
-             * 
-             * @function importSessionFromCookie
-             * @private
-             * 
-             * @returns {SessionObject|null} a kbase session object or null
-             * if there is no valid session cookie.
-             */
-            importSessionFromCookie: {
-                value: function () {
-                    var sessionCookie = Cookie.getItem(this.cookieName);
-
-                    if (!sessionCookie) {
-                        return null;
-                    }
-                    // first pass just break out the string into fields.
-                    var session = this.decodeToken(sessionCookie);
-
-                    if (!(session.kbase_sessionid && session.un && session.user_id && session.token)) {
-                        this.removeSession();
-                        return null;
-                    }
-                    session.token = session.token.replace(/PIPESIGN/g, '|').replace(/EQUALSSIGN/g, '=');
-
-                    // Ensure that we have localStorage.
-                    var storageSessionString = localStorage.getItem(this.cookieName);
-                    if (!storageSessionString) {
-                        Logger.logWarning('Local Storage Cookie missing -- resetting session');
-                        this.removeSession();
-                        return null;
-                    }
-
-                    var storageSession = JSON.parse(storageSessionString);
-                    if (session.token !== storageSession.token) {
-                        Logger.logWarning('Local Storage Cookie token different than cookie token -- resetting session');
-                        this.removeSession();
-                        return null;
-                    }
-
-                    // now we have a session object equivalent to the one returned by the auth service.
-                    var newSession = {
-                        username: session.user_id,
-                        token: session.token,
-                        tokenObject: this.decodeToken(session.token),
-                        sessionId: session.kbase_sessionid
-                    };
-
-                    if (this.validateSession(newSession)) {
-                        return newSession;
-                    } else {
-                        return null;
-                    }
-                }
-            },
-            /**
-             * Creates a valid standard Session Object from a raw session object
-             * provided by Globus.
-             * 
-             * @function importSessionFromAuthObject
-             * @private
-             * 
-             * @param {KBaseSessionObject} kbaseSession - the session object
-             * returned from the KBase auth server
-             * @returns {SessionObject|null} a validated Session Object, or null
-             * if no session or an invalid session was provided.
-             */
-            importSessionFromAuthObject: {
-                value: function (kbaseSession) {
-                    // Auth object has fields un, user_id, kbase_sessionid, token. If any are missing, we void the session (if any)
-                    // cookies and pretend we have nothing.
-                    // NB: the object returned from the auth service does NOT have the un field.
-                    if (!(kbaseSession.kbase_sessionid && kbaseSession.user_id && kbaseSession.token)) {
-                        // throw new Error('Invalid Kbase Session Cookie');
-                        this.removeSession();
-                        return null;
-                    }
-                    var newSession = {
-                        username: kbaseSession.user_id,
-                        realname: kbaseSession.name,
-                        token: kbaseSession.token,
-                        tokenObject: this.decodeToken(kbaseSession.token),
-                        sessionId: kbaseSession.kbase_sessionid
-                    };
-
-                    if (this.validateSession(newSession)) {
-                        return newSession;
-                    }
-                    return null;
-                }
-            },
-            /**
-             * Forces the session object to be re-imported from the browser
-             * cookie. Designed to be used by clients which want to ensure that
-             * they have the very latest session. 
-             * 
-             * @function refreshSession
-             * @public
-             * 
-             * @returns {SessionObject} the current session object.
-             */
-            refreshSession: {
-                value: function () {
-                    this.setSession(this.importSessionFromCookie());
-                    return this.sessionObject;
-                }
-            },
+            function getVersion() {
+                return version;
+            }
 
             /**
              * 
@@ -247,43 +68,11 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * @property {string} kbase_sessionid - Issued by the auth server,
              * used to uniquely identify this session amongst all other extant
              * sessions. ???
-             * @todo Where is kbase_sessionid used??? Not in ui-common ...
+             * @todo Where is kbase_sessionid used??? Not in ui-common ..
              * 
              */
 
-            /**
-             * Returns the "KBase Session", for legacy usage. The legacy method
-             * of accessing the session is to work directly with a session object,
-             * rather than the api.
-             * 
-             * @function getKBaseSesssion
-             * @public
-             * 
-             * @returns {KBaseSessionObject}
-             */
-            getKBaseSession: {
-                value: function () {
-                    this.refreshSession();
-                    if (!this.sessionObject) {
-                        return null;
-                    }
-                    return this.makeKBaseSession();
-                }
-            },
-            makeKBaseSession: {
-                value: function () {
-                    if (!this.sessionObject) {
-                        return null;
-                    }
-                    return {
-                        un: this.sessionObject.username,
-                        user_id: this.sessionObject.username,
-                        name: this.sessionObject.realname,
-                        token: this.sessionObject.token,
-                        kbase_sessionid: this.sessionObject.sessionId
-                    };
-                }
-            },
+
             /**
              * An object representation of the Globus authentication token.
              * 
@@ -303,20 +92,46 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * @returns {GlobusAuthToken} an object representing the decoded
              * token.
              */
-            decodeToken: {
-                value: function (token) {
-                    var parts = token.split('|');
-                    var map = {};
-                    var i;
-                    for (i = 0; i < parts.length; i++) {
-                        var fieldParts = parts[i].split('=');
-                        var key = fieldParts[0];
-                        var value = fieldParts[1];
-                        map[key] = value;
-                    }
-                    return map;
+            function decodeToken(token) {
+                var parts = token.split('|'),
+                    map = {},
+                    i,
+                    fieldParts, key, value;
+                for (i = 0; i < parts.length; i += 1) {
+                    fieldParts = parts[i].split('=');
+                    key = fieldParts[0];
+                    value = fieldParts[1];
+                    map[key] = value;
                 }
-            },
+                return map;
+            }
+
+            /**
+             * Determines if the session has expired by inspection of the expiry.
+             * 
+             * @function hasExpired
+             * @private
+             * 
+             * @param {SessionObject} - a session object
+             * @returns {boolean} true if the session has expired, false otherwise.
+             */
+            function hasExpired(sessionObject) {
+                var expirySec = sessionObject.tokenObject.expiry;
+                if (!expirySec) {
+                    return false;
+                }
+                expirySec = parseInt(expirySec, 10);
+                if (isNaN(expirySec)) {
+                    return false;
+                }
+                var expiryDate = new Date(expirySec * 1000);
+                var diff = expiryDate - new Date();
+                if (diff <= 0) {
+                    return true;
+                }
+                return false;
+            }
+
             /**
              * Given a session object, ensure that it is valid, to best of our
              * ability. It serves as the gateway between the externally stored
@@ -337,53 +152,24 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * @param {Object} - the prospective session object
              * @returns {boolean} - if the session is valid.
              */
-            validateSession: {
-                value: function (sessionObject) {
-                    if (sessionObject === undefined) {
-                        sessionObject = this.sessionObject;
-                    }
-                    if (!sessionObject) {
-                        return false;
-                    }
-
-                    if (!(sessionObject.sessionId && sessionObject.username && sessionObject.token && sessionObject.tokenObject)) {
-                        return false;
-                    }
-
-                    if (this.hasExpired(sessionObject)) {
-                        return false;
-                    }
-                    return true;
+            function validateSession(sessionObject) {
+                if (sessionObject === undefined) {
+                    sessionObject = sessionObject;
                 }
-            },
-            /**
-             * Determines if the session has expired by inspection of the expiry.
-             * 
-             * @function hasExpired
-             * @private
-             * 
-             * @param {SessionObject} - a session object
-             * @returns {boolean} true if the session has expired, false otherwise.
-             */
-            hasExpired: {
-                value: function (sessionObject) {
-                    var expirySec = sessionObject.tokenObject.expiry;
-                    if (!expirySec) {
-                        return false;
-                    }
-                    expirySec = parseInt(expirySec);
-                    if (isNaN(expirySec)) {
-                        return false;
-                    }
-                    var expiryDate = new Date(expirySec * 1000);
-                    var diff = expiryDate - new Date();
-                    if (diff <= 0) {
-                        return true;
-                    } else {
-                        return false;
-                    }
+                if (!sessionObject) {
+                    return false;
                 }
-            },
+
+                if (!(sessionObject.sessionId && sessionObject.username && sessionObject.token && sessionObject.tokenObject)) {
+                    return false;
+                }
+
+                if (hasExpired(sessionObject)) {
+                    return false;
+                }
+                return true;
+            }
+
             /**
              * Creates an session cookie string from the current session cookie.
              * 
@@ -396,16 +182,14 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * @returns {string|null} a session object formatted into a string
              * suitable for transport in a cookie.
              */
-            makeSessionCookie: {
-                value: function () {
-                    var cookie = '';
-                    cookie += 'un=' + this.sessionObject.username;
-                    cookie += '|kbase_sessionid=' + this.sessionObject.sessionId;
-                    cookie += '|user_id=' + this.sessionObject.username;
-                    cookie += '|token=' + this.sessionObject.token.replace(/=/g, 'EQUALSSIGN').replace(/\|/g, 'PIPESIGN');
-                    return cookie;
-                }
-            },
+            function makeSessionCookie() {
+                var cookie = '';
+                cookie += 'un=' + sessionObject.username;
+                cookie += '|kbase_sessionid=' + sessionObject.sessionId;
+                cookie += '|user_id=' + sessionObject.username;
+                cookie += '|token=' + sessionObject.token.replace(/=/g, 'EQUALSSIGN').replace(/\|/g, 'PIPESIGN');
+                return cookie;
+            }
             /**
              * Create and set a session cookie in the browser.
              * 
@@ -418,20 +202,64 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * 
              * @returns {undefined} nothing
              */
-            setSessionCookie: {
-                value: function () {
-                    if (this.sessionObject) {
-                        var cookieString = this.makeSessionCookie();
-                        Cookie.setItem(this.cookieName, cookieString, this.cookieMaxAge, '/');
-                        Cookie.setItem(this.narrCookieName, cookieString, this.cookieMaxAge, '/');
-                        var kbaseSession = this.makeKBaseSession();
-                        // This is for compatability with the current state of the narrative ui, which uses this
-                        // as a flag for being authenticated.
-                        kbaseSession.success = 1;
-                        localStorage.setItem(this.cookieName, JSON.stringify(kbaseSession));
-                    }
+            function setSessionCookie() {
+                if (this.sessionObject) {
+                    var cookieString = makeSessionCookie();
+                    Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');
+                    // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
+                    var kbaseSession = makeKBaseSession();
+                    // This is for compatability with the current state of the narrative ui, which uses this
+                    // as a flag for being authenticated.
+                    kbaseSession.success = 1;
+                    // localStorage.setItem(cookieName, JSON.stringify(kbaseSession));
                 }
-            },
+            }
+
+            /**
+             * Forces the session object to be re-imported from the browser
+             * cookie. Designed to be used by clients which want to ensure that
+             * they have the very latest session. 
+             * 
+             * @function refreshSession
+             * @public
+             * 
+             * @returns {SessionObject} the current session object.
+             */
+            function refreshSession() {
+                setSession(this.importSessionFromCookie());
+                return sessionObject;
+            }
+
+            /**
+             * Returns the "KBase Session", for legacy usage. The legacy method
+             * of accessing the session is to work directly with a session object,
+             * rather than the api.
+             * 
+             * @function getKBaseSesssion
+             * @public
+             * 
+             * @returns {KBaseSessionObject}
+             */
+            function getKBaseSession() {
+                refreshSession();
+                if (!sessionObject) {
+                    return null;
+                }
+                return makeKBaseSession();
+            }
+            function makeKBaseSession() {
+                if (!sessionObject) {
+                    return null;
+                }
+                return {
+                    un: sessionObject.username,
+                    user_id: sessionObject.username,
+                    name: sessionObject.realname,
+                    token: sessionObject.token,
+                    kbase_sessionid: sessionObject.sessionId
+                };
+            }
+
             /**
              * Removes all traces of of the session from the users browser
              * 
@@ -440,17 +268,128 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * 
              * @returns {undefined} nothing
              */
-            removeSession: {
-                value: function () {
-                    Cookie.removeItem(this.cookieName, '/');
-                    Cookie.removeItem(this.cookieName, '/', 'kbase.us');
-                    Cookie.removeItem(this.narrCookieName, '/', 'kbase.us');
-                    // Remove the localStorage session for compatability.
-                    localStorage.removeItem(this.cookieName);
+            function removeSession() {
+                Cookie.removeItem(cookieName, '/');
+                // Cookie.removeItem(cookieName, '/', 'kbase.us');
+                // Cookie.removeItem(narrCookieName, '/', 'kbase.us');
+                // Remove the localStorage session for compatability.
+                //localStorage.removeItem(cookieName);
 
-                    this.sessionObject = null;
+                sessionObject = null;
+            }
+
+
+
+            /**
+             * Attempt to set the internal session object from the given 
+             * session object.
+             * 
+             * @function setSession
+             * @private
+             * 
+             * @param {SessionObject} obj - a session object
+             * @returns {undefined}
+             */
+            function setSession(obj) {
+                if (validateSession(obj)) {
+                    sessionObject = obj;
+                } else {
+                    sessionObject = null;
                 }
-            },
+            }
+
+            /**
+             * Extract the cookie from the browser environment, parse it, and 
+             * validate it. This is the canonical interface betweek KBase ui
+             * code and browser authentication.
+             * 
+             * @function importSessionFromCookie
+             * @private
+             * 
+             * @returns {SessionObject|null} a kbase session object or null
+             * if there is no valid session cookie.
+             */
+            function importSessionFromCookie() {
+                var sessionCookie = Cookie.getItem(this.cookieName);
+
+                if (!sessionCookie) {
+                    return null;
+                }
+                // first pass just break out the string into fields.
+                var session = decodeToken(sessionCookie);
+
+                if (!(session.kbase_sessionid && session.un && session.user_id && session.token)) {
+                    removeSession();
+                    return null;
+                }
+                session.token = session.token.replace(/PIPESIGN/g, '|').replace(/EQUALSSIGN/g, '=');
+
+                // Ensure that we have localStorage.
+                var storageSessionString = localStorage.getItem(this.cookieName);
+                if (!storageSessionString) {
+                    Logger.logWarning('Local Storage Cookie missing -- resetting session');
+                    removeSession();
+                    return null;
+                }
+
+                var storageSession = JSON.parse(storageSessionString);
+                if (session.token !== storageSession.token) {
+                    Logger.logWarning('Local Storage Cookie token different than cookie token -- resetting session');
+                    removeSession();
+                    return null;
+                }
+
+                // now we have a session object equivalent to the one returned by the auth service.
+                var newSession = {
+                    username: session.user_id,
+                    token: session.token,
+                    tokenObject: decodeToken(session.token),
+                    sessionId: session.kbase_sessionid
+                };
+
+                if (validateSession(newSession)) {
+                    return newSession;
+                } else {
+                    return null;
+                }
+            }
+            /**
+             * Creates a valid standard Session Object from a raw session object
+             * provided by Globus.
+             * 
+             * @function importSessionFromAuthObject
+             * @private
+             * 
+             * @param {KBaseSessionObject} kbaseSession - the session object
+             * returned from the KBase auth server
+             * @returns {SessionObject|null} a validated Session Object, or null
+             * if no session or an invalid session was provided.
+             */
+            function importSessionFromAuthObject(kbaseSession) {
+                // Auth object has fields un, user_id, kbase_sessionid, token. If any are missing, we void the session (if any)
+                // cookies and pretend we have nothing.
+                // NB: the object returned from the auth service does NOT have the un field.
+                if (!(kbaseSession.kbase_sessionid && kbaseSession.user_id && kbaseSession.token)) {
+                    // throw new Error('Invalid Kbase Session Cookie');
+                    removeSession();
+                    return null;
+                }
+                var newSession = {
+                    username: kbaseSession.user_id,
+                    realname: kbaseSession.name,
+                    token: kbaseSession.token,
+                    tokenObject: decodeToken(kbaseSession.token),
+                    sessionId: kbaseSession.kbase_sessionid
+                };
+
+                if (validateSession(newSession)) {
+                    return newSession;
+                }
+                return null;
+            }
+
+
+
             /**
              * typedef {Object} LoginCredentials
              * @property {string} username - the username
@@ -470,154 +409,153 @@ define(['jquery', 'bluebird', 'kb.cookie', 'kb.config', 'kb.logger'],
              * be passed in from a login dialog.
              * 
              */
-            login: {
-                value: function (options) {
-                    return new Promise(function (resolve, reject) {
-                        // Uses the options args style, with success and error callbacks.
-                        // The top layer of kbase widgets do not have Q available.
+            function login(options) {
+                return new Promise(function (resolve, reject) {
+                    // Uses the options args style, with success and error callbacks.
+                    // The top layer of kbase widgets do not have Q available.
 
-                        // Validate params.
-                        if (!options.username || options.username.length === 0) {
-                            reject('Username is empty: It is required for login');
-                            //  options.error('Username is empty: It is required for login');
-                            return;
-                        }
-                        if (!options.password || options.password.length === 0) {
-                            reject('Password is empty: It is required for login');
-                            //options.error('Password is empty: It is required for login');
-                            return;
-                        }
+                    // Validate params.
+                    if (!options.username || options.username.length === 0) {
+                        reject('Username is empty: It is required for login');
+                        //  options.error('Username is empty: It is required for login');
+                        return;
+                    }
+                    if (!options.password || options.password.length === 0) {
+                        reject('Password is empty: It is required for login');
+                        //options.error('Password is empty: It is required for login');
+                        return;
+                    }
 
-                        // NB: the cookie param determines whether the auth service will
-                        // set a cookie or not. The cookie set only includes un and kbase_sessionid.
-                        // It does not include the auth token, amazingly, which is required for all 
-                        // service calls.
-                        var loginParams = {
-                            user_id: options.username,
-                            password: options.password,
-                            fields: 'un,token,user_id,kbase_sessionid,name',
-                            status: 1
-                        };
+                    // NB: the cookie param determines whether the auth service will
+                    // set a cookie or not. The cookie set only includes un and kbase_sessionid.
+                    // It does not include the auth token, amazingly, which is required for all 
+                    // service calls.
+                    var loginParams = {
+                        user_id: options.username,
+                        password: options.password,
+                        fields: 'un,token,user_id,kbase_sessionid,name',
+                        status: 1
+                    };
 
-                        $.support.cors = true;
-                        $.ajax({
-                            type: 'POST',
-                            url: Config.getItem('services.login.url'),
-                            data: loginParams,
-                            dataType: 'json',
-                            crossDomain: true,
-                            xhrFields: {
-                                withCredentials: true
-                            },
-                            beforeSend: function (xhr) {
-                                // make cross-site requests
-                                xhr.withCredentials = true;
-                            },
-                            success: function (data, res, jqXHR) {
-                                if (data.kbase_sessionid) {
-                                    this.setSession(this.importSessionFromAuthObject(data));
-                                    if (!options.disableCookie) {
-                                        this.setSessionCookie();
-                                    }
-                                    // options.success(this.makeKBaseSession());
-                                    resolve(this.makeKBaseSession());
-                                } else {
-                                    reject(data.error_msg);
-                                    //options.error({
-                                    //    status: 0,
-                                    //    message: data.error_msg
-                                    //});
+                    $.support.cors = true;
+                    $.ajax({
+                        type: 'POST',
+                        url: loginUrl,
+                        data: loginParams,
+                        dataType: 'json',
+                        crossDomain: true,
+                        xhrFields: {
+                            withCredentials: true
+                        },
+                        beforeSend: function (xhr) {
+                            // make cross-site requests
+                            xhr.withCredentials = true;
+                        },
+                        success: function (data, res, jqXHR) {
+                            if (data.kbase_sessionid) {
+                                setSession(importSessionFromAuthObject(data));
+                                if (!options.disableCookie) {
+                                    setSessionCookie();
                                 }
-                            }.bind(this),
-                            error: function (jqXHR, textStatus, errorThrown) {
-                                /* Some error cases
-                                 * status == 401 - show "uid/pw = wrong!" message
-                                 * status is not 401,
-                                 *     and we have a responseJSON - if that's the "LoginFailure: Auth fail" error, show the same uid/pw wrong msg.
-                                 *     and we do not have a responseJSON (or it's something else): show a generic message
-                                 */
-                                var errmsg = textStatus;
-                                var wrongPwMsg = "The login attempt failed: Username &amp; Password combination are incorrect";
-                                if (jqXHR.status && jqXHR.status === 401) {
+                                // options.success(this.makeKBaseSession());
+                                resolve(makeKBaseSession());
+                            } else {
+                                reject(data.error_msg);
+                                //options.error({
+                                //    status: 0,
+                                //    message: data.error_msg
+                                //});
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            /* Some error cases
+                             * status == 401 - show "uid/pw = wrong!" message
+                             * status is not 401,
+                             *     and we have a responseJSON - if that's the "LoginFailure: Auth fail" error, show the same uid/pw wrong msg.
+                             *     and we do not have a responseJSON (or it's something else): show a generic message
+                             */
+                            var errmsg = textStatus;
+                            var wrongPwMsg = "The login attempt failed: Username &amp; Password combination are incorrect";
+                            if (jqXHR.status && jqXHR.status === 401) {
+                                errmsg = wrongPwMsg;
+                            } else if (jqXHR.responseJSON) {
+                                // if it has an error_msg field, use it
+                                if (jqXHR.responseJSON.error_msg) {
+                                    errmsg = jqXHR.responseJSON.error_msg;
+                                }
+                                // if that's the unclear auth fail message, update it
+                                if (errmsg === "LoginFailure: Authentication failed.") {
                                     errmsg = wrongPwMsg;
-                                } else if (jqXHR.responseJSON) {
-                                    // if it has an error_msg field, use it
-                                    if (jqXHR.responseJSON.error_msg) {
-                                        errmsg = jqXHR.responseJSON.error_msg;
-                                    }
-                                    // if that's the unclear auth fail message, update it
-                                    if (errmsg === "LoginFailure: Authentication failed.") {
-                                        errmsg = wrongPwMg;
-                                    }
                                 }
-                                // if we get through here and still have a useless error message, update that, too.
-                                if (errmsg == "error") {
-                                    errmsg = "Internal Error: Error connecting to the login server";
-                                }
-                                this.sessionObject = null;
-                                this.error = {
-                                    message: errmsg
-                                }
-                                // options.error(errmsg);
-                                reject(errmsg);
-                            }.bind(this)
-                        });
-                    }.bind(this));
-                }
-            },
-            
-            logout: {
-                value: function () {
-                    return new Promise(function (resolve) {
-                        this.removeSession();
-                        resolve();
-                    }.bind(this));
-                }
-            },
+                            }
+                            // if we get through here and still have a useless error message, update that, too.
+                            if (errmsg === "error") {
+                                errmsg = "Internal Error: Error connecting to the login server";
+                            }
+                            sessionObject = null;
+                            error = {
+                                message: errmsg
+                            };
+                            // options.error(errmsg);
+                            reject(errmsg);
+                        }
+                    });
+                });
+            }
 
-            isLoggedIn: {
-                value: function () {
-                    if (this.sessionObject && this.sessionObject.token) {
-                        return true;
-                    }
-                    return false;
+            function logout() {
+                return new Promise(function (resolve) {
+                    removeSession();
+                    resolve();
+                });
+            }
+
+            function isLoggedIn() {
+                if (sessionObject && sessionObject.token) {
+                    return true;
                 }
-            },
-            getProp: {
-                value: function (propName, defaultValue) {
-                    return Util.getProp(this.sessionObject, propName, defaultValue);
-                }
-            },
-            getUsername: {
-                value: function () {
-                    if (this.sessionObject) {
-                        return this.sessionObject.username;
-                    }
-                }
-            },
-            getRealname: {
-                value: function () {
-                    if (this.sessionObject) {
-                        return this.sessionObject.realname;
-                    }
-                }
-            },
-            getSessionId: {
-                value: function () {
-                    if (this.sessionObject) {
-                        return this.sessionObject.sessionId;
-                    }
-                }
-            },
-            getAuthToken: {
-                value: function () {
-                    if (this.sessionObject) {
-                        return this.sessionObject.token;
-                    }
+                return false;
+            }
+            function getUsername() {
+                if (sessionObject) {
+                    return sessionObject.username;
                 }
             }
-        });
-        
-        var SingletonSession = Object.create(Session).init();
-        return SingletonSession;
+            function getRealname() {
+                if (sessionObject) {
+                    return sessionObject.realname;
+                }
+            }
+            function getSessionId() {
+                if (sessionObject) {
+                    return sessionObject.sessionId;
+                }
+            }
+            function getAuthToken() {
+                if (sessionObject) {
+                    return sessionObject.token;
+                }
+            }
+
+            // Setup
+
+            setSession(importSessionFromCookie);
+
+
+            // API
+
+            return {
+                getVersion: getVersion,
+                login: login,
+                logout: logout,
+                getUsername: getUsername,
+                getRealname: getRealname,
+                getSessionId: getSessionId,
+                getAuthToken: getAuthToken
+            };
+        }
+
+        return factory;
+        // var SingletonSession = Object.create(Session).init();
+        // return SingletonSession;
     });
