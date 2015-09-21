@@ -555,7 +555,9 @@ define([
             };
         }
 
-        return factory;
+        return {
+            make: factory
+        };
         // var SingletonSession = Object.create(Session).init();
         // return SingletonSession;
     });
