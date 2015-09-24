@@ -4,16 +4,16 @@ define([
     'bluebird',
     'underscore',
     'kb_common_dom',
-    'kb_common_runtime',
     'kb_common_state',
     'kb_common_html'
 ],
-    function (Promise, _, dom, R, State, html) {
+    function (Promise, _, dom, State, html) {
         'use strict';
 
         function makeWidget(config) {
             var mount, container, hooks = [], listeners = [], 
-                state = State.make(), 
+                state = State.make(),
+                runtime = config.runtime,
                 internalApi = {}, externalApi = {};
             
             if (config && config.on) {
@@ -70,10 +70,10 @@ define([
             
             // EVENTS
             function recv(channel, message, handler) {
-                listeners.push(R.recv(channel, message, handler));
+                listeners.push(runtime.recv(channel, message, handler));
             }
             function send(channel, message, data) {
-                R.send(channel, message, data);
+                runtime.send(channel, message, data);
             }
             
             // DOM EVENTS
@@ -192,7 +192,7 @@ define([
             }
             function start(params) {
                 return new Promise(function (resolve) {
-                    listeners.push(R.recv('app', 'heartbeat', function () {
+                    listeners.push(runtime.recv('app', 'heartbeat', function () {
                         render()
                             .then(function () {
                                 // what here?
