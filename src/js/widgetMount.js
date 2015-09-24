@@ -53,7 +53,10 @@ define([
                         }
                     }))
                         .then(function () {
-                            return runtime.makeWidget(widgetId);
+                            // return runtime.ask('widgetManager', 'makeWidget', widgetId);
+                            return runtime.makeWidget(widgetId, {
+                                runtime: runtime
+                            });
                         })
                         .then(function (widget) {
                             mountedWidget = {
