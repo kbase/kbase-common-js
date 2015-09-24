@@ -16,7 +16,7 @@ define([
 
         function factory(config) {
 
-            var plugins = config.plugins;
+            var plugins = {};
 
             /*
              * All of these installXXX installers return an array of 
@@ -291,8 +291,8 @@ define([
                 });
             }
 
-            function installPlugins() {
-                var loaders = plugins.map(function (plugin) {
+            function installPlugins(pluginDefs) {
+                var loaders = pluginDefs.map(function (plugin) {
                     installPlugin(plugin);
                 });
                 return new Promise.all(loaders);
