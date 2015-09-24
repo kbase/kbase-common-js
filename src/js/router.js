@@ -34,9 +34,10 @@
  */
 define([], function () {
     'use strict';
-    var factory = function () {
+    function factory () {
         // Routing
-        var routes = [];
+        var routes = [],
+            defaultRoute = null;
         function addRoute(pathSpec) {
             /*
              * The path spec is an array of elements. Each element is either a
@@ -50,7 +51,6 @@ define([], function () {
             routes.push(pathSpec);
         }
 
-        var defaultRoute = null;
         function setDefaultRoute(routeSpec) {
             defaultRoute = routeSpec;
         }
@@ -71,12 +71,13 @@ define([], function () {
 
         function getCurrentRequest() {
             var path = [],
-                query = {};
+                query = {},
+                hash, pathQuery;
 
             // The path is (for now) from the hash component.
             if (window.location.hash && window.location.hash.length > 1) {
-                var hash = window.location.hash.substr(1),
-                    pathQuery = hash.split('?', 2);
+                hash = window.location.hash.substr(1);
+                pathQuery = hash.split('?', 2);
 
                 if (pathQuery.length === 2) {
                     query = parseQueryString(pathQuery[1]);
@@ -92,26 +93,24 @@ define([], function () {
             };
         }
         
-        function findCurrentRoute() {
-            var req = getCurrentRequest();
-            return findRoute(req);
-        }
-
+       
         function findRoute(req) {
-            var foundRoute;
-            for (var i = 0; i < routes.length; i += 1) {
-                var route = routes[i];
+            var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
+            for (i = 0; i < routes.length; i += 1) {
+                route = routes[i];
                 if (route.path.length !== req.path.length) {
                     continue;
                 }
-                var params = {}, found = true;
-                for (var j = 0; j < req.path.length; j += 1) {
-                    var elValue = route.path[j],
-                        elType = typeof elValue;
+                params = {};
+                found = true;
+                for (j = 0; j < req.path.length; j += 1) {
+                    elValue = route.path[j];
+                    elType = typeof elValue;
                     if (elType === 'string' && elValue !== req.path[j]) {
                         found = false;
                         break;
-                    } else if (elType === 'object' && elValue.type === 'param') {
+                    }
+                    if (elType === 'object' && elValue.type === 'param') {
                         params[elValue.name] = req.path[j];
                     }
                 }
@@ -125,7 +124,7 @@ define([], function () {
             }
             // The total params is the path params and query params
             if (foundRoute) {
-                var allowableParams = foundRoute.route.queryParams || {};
+                allowableParams = foundRoute.route.queryParams || {};
                 Object.keys(req.query).forEach(function(key) {
                     var paramDef = allowableParams[key];
                     /* TODO: implement the param def for conversion, validation, etc. */
@@ -141,12 +140,16 @@ define([], function () {
             }
             return foundRoute;
         }
-        
+         function findCurrentRoute() {
+            var req = getCurrentRequest();
+            return findRoute(req);
+        }
+
         function listRoutes() {
             return routes.map(function(route) {
                 return route.path;
             });
-        };
+        }
        
         return {
             addRoute: addRoute,
@@ -156,7 +159,7 @@ define([], function () {
             findRoute: findRoute,
             setDefaultRoute: setDefaultRoute
         };
-    };
+    }
     
     return {
         make: function() {
