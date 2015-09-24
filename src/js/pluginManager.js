@@ -192,7 +192,7 @@ define([
                 // build up a list of modules and add them to the require config.
                 var paths = {}, 
                     shims = {},
-                    sourcePath = plugin.directory + '/source',
+                    sourcePath = pluginDef.directory + '/source',
                     dependencies = [];
 
                 // load any styles.
@@ -247,9 +247,10 @@ define([
                     require(dependencies, function () {
                         var installSteps = [];
                         
-                        Object.keys(pluginDef.install).forEach(function (installDef) {
-                            var intallationPromise = installService(key, installDef);
-                            arrayExtend(installSteps, installationPromise);
+                        Object.keys(pluginDef.install).forEach(function (serviceName) {
+                            var installDef = pluginDef.install[serviceName],
+                                intallationPromise = installService(serviceName, installDef);
+                            arrayExtend(installSteps, intallationPromise);
                         });
 
                         // Do all of the install steps.
