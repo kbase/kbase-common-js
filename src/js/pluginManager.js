@@ -14,9 +14,9 @@ define([
     function (Promise) {
         'use strict';
 
-        function factory(config) {
-
-            var plugins = {};
+        function factory(cfg) {
+            var plugins = {},
+                config = cfg;
 
             /*
              * All of these installXXX installers return an array of 
