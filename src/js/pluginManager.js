@@ -7,11 +7,11 @@
  white: true
  */
 define([
-    'bluebird',
-    'kb_types',
-    'kb.runtime'
+    'bluebird'
+    // 'kb_types',
+    // 'kb.runtime'
 ],
-    function (Promise, Types, Runtime) {
+    function (Promise) {
         'use strict';
 
         function factory(config) {
@@ -23,134 +23,134 @@ define([
              * promises.
              */
 
-            function installRoutes(routes) {
-                if (!routes) {
-                    return;
-                }
-                return routes.map(function (route) {
-                    return new Promise(function (resolve) {
-                        // Runtime.addRoute(route);
-                        /*if (route.panelFactory) {
-                         require([route.panelFactory], function (factory) {
-                         Runtime.addRoute({
-                         path: route.path,
-                         queryParams: route.queryParams,
-                         config: {
-                         pluginPath: '/' + sourcePath
-                         },
-                         panelFactory: factory
-                         });
-                         resolve();
-                         }, function (err) {
-                         console.log('Error loading panel factory');
-                         console.log(err);
-                         reject({
-                         name: 'routeError',
-                         message: 'invalid route',
-                         route: route
-                         });
-                         });
-                         } else if (route.panelObject) {
-                         require([route.panelObject], function (obj) {
-                         Runtime.addRoute({
-                         path: route.path,
-                         queryParams: route.queryParams,
-                         config: {
-                         pluginPath: sourcePath
-                         },
-                         panelObject: obj
-                         }, function (err) {
-                         console.log('Error loading panel object');
-                         console.log(err);
-                         });
-                         resolve();
-                         });
-                         */
-                        if (route.widget) {
-                            // ADD ROUTE WIDGET HERE...
-                            Runtime.addRoute({
-                                path: route.path,
-                                queryParams: route.queryParams,
-                                config: {
-                                },
-                                widget: route.widget
-                            });
-                            resolve();
-                        } else if (route.redirectHandler) {
-                            Runtime.addRoute(route);
-                            resolve();
-                        } else {
-                            throw {
-                                name: 'routeError',
-                                message: 'invalid route',
-                                route: route
-                            };
-                        }
-
-                    });
-                });
-            }
-
-            function installMenus(menus) {
-                if (!menus) {
-                    return;
-                }
-                return menus.map(function (item) {
-                    return new Promise(function (resolve) {
-                        Runtime.send('navbar', 'add-menu-item', item);
-                        resolve();
-                    });
-                });
-            }
-
-            function installTypes(types) {
-                if (!types) {
-                    return;
-                }
-                return types.map(function (typeDef) {
-                    var type = typeDef.type,
-                        viewers = typeDef.viewers;
-                    viewers.forEach(function (viewerDef) {
-                        return new Promise(function (resolve) {
-                            Types.addViewer(type, viewerDef);
-                            resolve();
-                        });
-                    });
-                });
-            }
-
-            function installWidgets(widgets) {
-                /*
-                 * 
-                 */
-                return [new Promise(function (resolve) {
-                        if (widgets) {
-                            widgets.forEach(function (widgetDef) {
-                                Runtime.addWidget(widgetDef);
-                            });
-                        }
-                        resolve();
-                    })];
-            }
-
-            function installBoot(cfg) {
-                return [new Promise(function (resolve) {
-                        /*
-                         * Send a message to the app manager to install this widget
-                         * at the root.
-                         */
-                        // just hard code this for now.
-                        // Runtime.setRootWidget('root');
-                        //if (cfg.mainWidget) {
-                        //    Runtime.addWidget({
+//            function installRoutes(routes) {
+//                if (!routes) {
+//                    return;
+//                }
+//                return routes.map(function (route) {
+//                    return new Promise(function (resolve) {
+//                        // Runtime.addRoute(route);
+//                        /*if (route.panelFactory) {
+//                         require([route.panelFactory], function (factory) {
+//                         Runtime.addRoute({
+//                         path: route.path,
+//                         queryParams: route.queryParams,
+//                         config: {
+//                         pluginPath: '/' + sourcePath
+//                         },
+//                         panelFactory: factory
+//                         });
+//                         resolve();
+//                         }, function (err) {
+//                         console.log('Error loading panel factory');
+//                         console.log(err);
+//                         reject({
+//                         name: 'routeError',
+//                         message: 'invalid route',
+//                         route: route
+//                         });
+//                         });
+//                         } else if (route.panelObject) {
+//                         require([route.panelObject], function (obj) {
+//                         Runtime.addRoute({
+//                         path: route.path,
+//                         queryParams: route.queryParams,
+//                         config: {
+//                         pluginPath: sourcePath
+//                         },
+//                         panelObject: obj
+//                         }, function (err) {
+//                         console.log('Error loading panel object');
+//                         console.log(err);
+//                         });
+//                         resolve();
+//                         });
+//                         */
+//                        if (route.widget) {
+//                            // ADD ROUTE WIDGET HERE...
+//                            Runtime.addRoute({
+//                                path: route.path,
+//                                queryParams: route.queryParams,
+//                                config: {
+//                                },
+//                                widget: route.widget
+//                            });
+//                            resolve();
+//                        } else if (route.redirectHandler) {
+//                            Runtime.addRoute(route);
+//                            resolve();
+//                        } else {
+//                            throw {
+//                                name: 'routeError',
+//                                message: 'invalid route',
+//                                route: route
+//                            };
+//                        }
 //
-                        //    });
-                        //}
-                        //Runtime.setRootWidget(cfg.boot);
-                        resolve();
-
-                    })];
-            }
+//                    });
+//                });
+//            }
+//
+//            function installMenus(menus) {
+//                if (!menus) {
+//                    return;
+//                }
+//                return menus.map(function (item) {
+//                    return new Promise(function (resolve) {
+//                        Runtime.send('navbar', 'add-menu-item', item);
+//                        resolve();
+//                    });
+//                });
+//            }
+//
+//            function installTypes(types) {
+//                if (!types) {
+//                    return;
+//                }
+//                return types.map(function (typeDef) {
+//                    var type = typeDef.type,
+//                        viewers = typeDef.viewers;
+//                    viewers.forEach(function (viewerDef) {
+//                        return new Promise(function (resolve) {
+//                            Types.addViewer(type, viewerDef);
+//                            resolve();
+//                        });
+//                    });
+//                });
+//            }
+//
+//            function installWidgets(widgets) {
+//                /*
+//                 * 
+//                 */
+//                return [new Promise(function (resolve) {
+//                        if (widgets) {
+//                            widgets.forEach(function (widgetDef) {
+//                                Runtime.addWidget(widgetDef);
+//                            });
+//                        }
+//                        resolve();
+//                    })];
+//            }
+//
+//            function installBoot(cfg) {
+//                return [new Promise(function (resolve) {
+//                        /*
+//                         * Send a message to the app manager to install this widget
+//                         * at the root.
+//                         */
+//                        // just hard code this for now.
+//                        // Runtime.setRootWidget('root');
+//                        //if (cfg.mainWidget) {
+//                        //    Runtime.addWidget({
+////
+//                        //    });
+//                        //}
+//                        //Runtime.setRootWidget(cfg.boot);
+//                        resolve();
+//
+//                    })];
+//            }
 
             function arrayExtend(to, from) {
                 if (from) {
