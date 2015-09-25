@@ -101,12 +101,12 @@ define(['bluebird'],
                         try {
                             return subDef.handler(pubDef.data);
                         } catch (ex) {
-                            reject({
+                            throw {
                                 name: 'SendError',
                                 message: 'Exception running message ' + messageName + ', sub ' + subId,
                                 data: ex,
                                 suggestion: 'This is an application error, not your fault'
-                            })
+                            };
                         }
                     });
                     
