@@ -101,7 +101,7 @@ define([
                         reject(err);
                     });
             });
-        }
+        } 
 
         function attach(node) {
             return new Promise(function (resolve, reject) {

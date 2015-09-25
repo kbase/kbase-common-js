@@ -33,8 +33,6 @@ define([
             }
             function makeWidget(widgetId, config) {
                 var widget = widgets[widgetId];
-                console.log('WIDGETS');
-                console.log(widgets);
                 if (!widget) {
                     throw new Error('Widget ' + widgetId + ' not found');
                 }

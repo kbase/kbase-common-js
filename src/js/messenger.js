@@ -94,9 +94,7 @@ define(['bluebird'],
                 }
 
                 var listeners = messageListener.listeners;
-
                 var ps = listeners.map(function (subDef) {
-                    
                     return Promise.try(function () {
                         try {
                             return subDef.handler(pubDef.data);
@@ -109,27 +107,15 @@ define(['bluebird'],
                             };
                         }
                     });
-                    
-                    
-//                    return new Promise(function (resolve, reject) {
-//                        try {
-//                            subDef.handler(pubDef.data)
-//                                .then(function (result) {
-//                                    resolve(result);
-//                                })
-//                                .catch(function (err) {
-//                                    reject(err);
-//                                });
-//                        } catch (ex) {
-//                            reject({
-//                                message: 'Exception running message ' + messageName + ', sub ' + subId,
-//                                exception: ex
-//                            });
-//                        }
-//                    });
                 });
-                console.log(ps);
-                return Promise.all(ps);
+                if (pubDef.propogate) {
+                    return Promise.all(ps);
+                } else {
+                    return Promise.all(ps).catch(function (err) {
+                        console.log('messenger send error');
+                        console.log(err);
+                    });
+                }
             }
             return {
                 receive: receive,
