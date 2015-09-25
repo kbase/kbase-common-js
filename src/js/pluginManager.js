@@ -147,7 +147,7 @@ define([
                 return new Promise(function (resolve, reject) {
                     var paths = {},
                         shims = {},
-                        sourcePath = pluginLocation.directory + '/source',
+                        sourcePath = pluginLocation.directory,
                         dependencies = [];
 
                     // load any styles.

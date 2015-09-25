@@ -124,6 +124,7 @@ define([
             
             internalApi = Object.freeze({
                 recv: recv,
+                send: send,
                 getState: getState,
                 setState: setState,
                 addDomEvent: addDomEvent
