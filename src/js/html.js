@@ -330,7 +330,7 @@ define(['underscore'], function (_) {
             }
             return span([
                 prompt,
-                i({class: 'fa fa-spinner fa-pulse fa-1x fa-fw margin-bottom'})
+                i({class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom'})
             ]);
         }
                 // <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
