@@ -27,8 +27,8 @@ define([
             container = mount.appendChild(container);
             container.id = html.genId();
             // container = dom.append(mount, dom.createElement('div'));
-
-            function mountWidget(widgetId) {
+ 
+            function mountWidget(widgetId, params) {
                 // stop the old one
                 return new Promise(function (resolve, reject) {
                     // Stop and unmount current panel.
@@ -77,7 +77,7 @@ define([
                                     widget.attach(c)
                                         .then(function () {
                                             // TODO: params for start
-                                            widget.start()
+                                            widget.start(params)
                                                 .then(function () {
                                                     resolve();
                                                 })
