@@ -323,15 +323,18 @@ define(['underscore'], function (_) {
         function loading(msg) {
             var span = tag('span'),
                 img = tag('img'),
+                i = tag('i'),
                 prompt;
             if (msg) {
                 prompt = msg + '... &nbsp &nbsp';
             }
             return span([
                 prompt,
-                img({src: '/images/ajax-loader.gif'})
+                i({class: 'fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom'})
             ]);
         }
+                // <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
+                // img({src: '/images/ajax-loader.gif'})
 
         /*
          * 
