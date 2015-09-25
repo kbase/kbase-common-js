@@ -96,22 +96,37 @@ define(['bluebird'],
                 var listeners = messageListener.listeners;
 
                 var ps = listeners.map(function (subDef) {
-                    return new Promise(function (resolve, reject) {
+                    
+                    return Promise.try(function () {
                         try {
-                            subDef.handler(pubDef.data)
-                                .then(function (result) {
-                                    resolve(result);
-                                })
-                                .catch(function (err) {
-                                    reject(err);
-                                });
+                            return subDef.handler(pubDef.data);
                         } catch (ex) {
                             reject({
+                                name: 'SendError',
                                 message: 'Exception running message ' + messageName + ', sub ' + subId,
-                                exception: ex
-                            });
+                                data: ex,
+                                suggestion: 'This is an application error, not your fault'
+                            })
                         }
                     });
+                    
+                    
+//                    return new Promise(function (resolve, reject) {
+//                        try {
+//                            subDef.handler(pubDef.data)
+//                                .then(function (result) {
+//                                    resolve(result);
+//                                })
+//                                .catch(function (err) {
+//                                    reject(err);
+//                                });
+//                        } catch (ex) {
+//                            reject({
+//                                message: 'Exception running message ' + messageName + ', sub ' + subId,
+//                                exception: ex
+//                            });
+//                        }
+//                    });
                 });
                 console.log(ps);
                 return Promise.all(ps);
