@@ -192,7 +192,7 @@ define([
                 });
             }
             function start(params) {
-                return new Promise(function (resolve) {
+                return Promise.try(function () {
                     listeners.push(runtime.recv('app', 'heartbeat', function () {
                         render()
                             .then(function () {
@@ -202,15 +202,13 @@ define([
                                 // handle render error
                                 console.log('ERROR');
                                 console.log(err);
-                            })
+                            });
                     }));
                     if (hasHook('start')) {
                         var promises = getHook('start').map(function (fun) {
                             return Promise.try(fun, [internalApi, params]);
                         });
-                        resolve(Promise.settle(promises));
-                    } else {
-                        resolve();
+                        return Promise.settle(promises);
                     }
                 });
             }
