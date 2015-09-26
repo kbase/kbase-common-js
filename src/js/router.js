@@ -86,7 +86,7 @@ define([], function () {
                     return (x.length > 0);
                 });
             }
-
+            
             return {
                 path: path,
                 query: query

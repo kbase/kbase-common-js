@@ -67,7 +67,9 @@ define([
                             };
 
                             /* TODO: config threaded here? */
-                            widget.init()
+                            Promise.try(function () {
+                                return widget.init
+                             })
                                 .then(function () {
                                     var c = dom.createElement('div');
                                     c.id = mountedWidget.id;
