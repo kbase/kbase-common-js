@@ -11,14 +11,16 @@ define([
         'use strict';
 
         function makeWidget(config) {
-            var mount, container, hooks = [], listeners = [], 
+            var mount, container, hooks = [], listeners = [],
                 state = State.make(),
                 runtime = config.runtime,
-                internalApi = {}, externalApi = {};
-            
+                internalApi = {}, externalApi = {},
+                eventsPendingAttachment = [],
+                eventsAttached = [];
+
             if (config && config.on) {
                 Object.keys(config.on).forEach(function (hookName) {
-                   addHook(hookName, config.on[hookName]); 
+                    addHook(hookName, config.on[hookName]);
                 });
             }
 
@@ -36,7 +38,7 @@ define([
                     });
                 } else {
                     addHook(name, fun);
-                }               
+                }
             }
             function hasHook(name) {
                 if (hooks.hasOwnProperty(name)) {
@@ -67,7 +69,7 @@ define([
             function getState(prop, defaultValue) {
                 return state.get(prop, defaultValue);
             }
-            
+
             // EVENTS
             function recv(channel, message, handler) {
                 listeners.push(runtime.recv(channel, message, handler));
@@ -75,42 +77,46 @@ define([
             function send(channel, message, data) {
                 runtime.send(channel, message, data);
             }
-            
+
             // DOM EVENTS
-            var domEvents = [];
+
             function addDomEvent(type, handler, id, data) {
                 if (!id) {
                     id = html.genId();
                 }
-                domEvents.push({
+                var event = {
                     type: type,
                     selector: '#' + id,
+                    nodeId: id,
                     handler: handler
-                });
+                };
+                eventsPendingAttachment.push(event);
                 return id;
             }
             function attachDomEvents() {
-                domEvents.forEach(function (event) {
-                    event.node = dom.nodeForId(event.id);
+                eventsPendingAttachment.forEach(function (event) {
+                    event.node = dom.nodeForId(event.nodeId);
                     event.listener = event.node.addEventListener(event.type, event.handler);
-                    
+                    eventsAttached.push(event);
+
                     // $container.on(event.type, event.selector, event.data, event.handler);
                     /*var fun = function (e) {
-                        console.log('trying...');
-                        console.log(e.target);
-                        console.log(event.selector);
-                        console.log(matches(e.target, event.selector));
-                        if (matches(e.target, event.selector)) {
-                            event.handler();
-                        }
-                    };
-                    event.actualHandler = fun;
-                    $container.get(0).addEventListener(event.type, fun);
-                    */
+                     console.log('trying...');
+                     console.log(e.target);
+                     console.log(event.selector);
+                     console.log(matches(e.target, event.selector));
+                     if (matches(e.target, event.selector)) {
+                     event.handler();
+                     }
+                     };
+                     event.actualHandler = fun;
+                     $container.get(0).addEventListener(event.type, fun);
+                     */
                 });
+                eventsPendingAttachment = [];
             }
             function detachDomEvents() {
-                domEvents.forEach(function (event) {
+                eventsAttached.forEach(function (event) {
                     if (event.listener) {
                         event.node.removeEventListener(event.type, event.handler);
                         delete event.listener;
@@ -118,10 +124,11 @@ define([
                         // $container.get(0).removeEventListener(event.type, event.actualHandler);
                     }
                 });
+                eventsAttached = [];
             }
-            
+
             // INTERNAL API
-            
+
             internalApi = Object.freeze({
                 recv: recv,
                 send: send,
@@ -129,20 +136,23 @@ define([
                 setState: setState,
                 addDomEvent: addDomEvent
             });
-            
-            
+
+
             // RENDERING
 
             function render() {
-                return new Promise(function (resolve) {
+                return Promise.try(function() {
                     if (!state.isDirty()) {
-                        resolve();
                         return;
                     }
+                    // For now we assume that rendering blows away dom events
+                    // and re-initializes them.
+                    // Let us get more subtle later.
+                    detachDomEvents();
                     var promises = getHook('render').map(function (fun) {
                         return Promise.try(fun, [internalApi]);
                     });
-                    resolve(Promise.settle(promises)
+                    return Promise.settle(promises)
                         .then(function (results) {
                             // should only be one render result ... 
                             var result = results[results.length - 1];
@@ -155,26 +165,28 @@ define([
                                 console.log(result.reason());
                             }
                             state.setClean();
-                        }));
+                        })
+                        .then(function () {
+                            console.log('reder: attaching');
+                            attachDomEvents();
+                        });
                 });
             }
 
             // The Interface
 
             function init(config) {
-                return new Promise(function (resolve) {
+                return Promise.try(function () {
                     if (hasHook('init')) {
                         var promises = getHook('init').map(function (fun) {
                             return Promise.try(fun, [internalApi, config]);
                         });
-                        resolve(Promise.settle(promises));
-                    } else {
-                        resolve();
+                        return Promise.settle(promises);
                     }
                 });
             }
             function attach(node) {
-                return new Promise(function (resolve) {
+                return Promise.try(function () {
                     mount = node;
                     container = dom.createElement('div');
                     dom.append(mount, container);
@@ -182,12 +194,10 @@ define([
                         var promises = getHook('attach').map(function (fun) {
                             return Promise.try(fun, [internalApi, container]);
                         });
-                        resolve(Promise.settle(promises).
-                            then(function () {
+                        return Promise.settle(promises)
+                            .then(function () {
                                 attachDomEvents();
-                            }));
-                    } else {
-                        resolve();
+                            });
                     }
                 });
             }
@@ -208,7 +218,10 @@ define([
                         var promises = getHook('start').map(function (fun) {
                             return Promise.try(fun, [internalApi, params]);
                         });
-                        return Promise.settle(promises);
+                        return Promise.settle(promises)
+                            .then(function () {
+                                attachDomEvents();
+                            });
                     }
                 });
             }
@@ -258,7 +271,6 @@ define([
             externalApi = {
                 // Widget Interface
                 on: hook,
-                
                 // Lifecycle Interface
                 init: init,
                 attach: attach,
@@ -267,7 +279,7 @@ define([
                 detach: detach,
                 destroy: destroy
             };
-            
+
             return Object.freeze(externalApi);
         }
 

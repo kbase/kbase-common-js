@@ -205,8 +205,11 @@ define([
                             Object.keys(pluginDef.install).forEach(function (serviceName) {
                                 var installDef = pluginDef.install[serviceName],
                                     intallationPromise = installService(serviceName, installDef);
+                                console.log('install def');
+                                console.log(installDef);
                                 arrayExtend(installSteps, [intallationPromise]);
                             });
+                            console.log('HERE');
                             // Do all of the install steps.
                             Promise.all(installSteps)
                                 .then(function (doneSteps) {
