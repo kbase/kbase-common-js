@@ -34,19 +34,19 @@
  */
 define([], function () {
     'use strict';
-    function factory (config) {
+    function factory(config) {
         // Routing
         var routes = [],
             defaultRoute = config.defaultRoute,
             notFoundRoute = config.notFoundRoute;
-        
+
         if (!defaultRoute) {
             throw new Error('The defaultRoute must be provided');
         }
         if (!notFoundRoute) {
             throw new Error('The notFound route must be provided');
         }
-        
+
         function addRoute(pathSpec) {
             /*
              * The path spec is an array of elements. Each element is either a
@@ -63,7 +63,7 @@ define([], function () {
         function parseQueryString(s) {
             var fields = s.split(/[\?\&]/),
                 params = {};
-            fields.forEach(function(field) {
+            fields.forEach(function (field) {
                 if (field.length > 0) {
                     var pair = field.split('=');
                     if (pair[0].length > 0) {
@@ -91,17 +91,17 @@ define([], function () {
                     return (x.length > 0);
                 });
             }
-            
+
             return {
                 path: path,
                 query: query
             };
         }
-        
-       
+
+
         function findRoute(req) {
             var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
-            if ( (req.path.length === 0) && (!req.queryParams || Object.keys(req.queryParams) === 0) ) {
+            if ((req.path.length === 0) && (Object.keys(req.query).length === 0)) {
                 return {
                     params: {},
                     route: defaultRoute
@@ -136,7 +136,7 @@ define([], function () {
             // The total params is the path params and query params
             if (foundRoute) {
                 allowableParams = foundRoute.route.queryParams || {};
-                Object.keys(req.query).forEach(function(key) {
+                Object.keys(req.query).forEach(function (key) {
                     var paramDef = allowableParams[key];
                     /* TODO: implement the param def for conversion, validation, etc. */
                     if (paramDef) {
@@ -146,33 +146,72 @@ define([], function () {
             } else {
                 return {
                     params: {},
-                    route: notFoundRoute                    
+                    route: notFoundRoute
                 };
             }
             return foundRoute;
         }
-         function findCurrentRoute() {
+        function findCurrentRoute() {
             var req = getCurrentRequest();
             return findRoute(req);
         }
 
         function listRoutes() {
-            return routes.map(function(route) {
+            return routes.map(function (route) {
                 return route.path;
             });
         }
-       
+
+
+        // TODO: move this stuff to router?
+        /**
+         * A simple adapter to trigger a routing event for the current
+         * browser hash-path.
+         * 
+         * @returns {undefined}
+         */
+
+        function navigateTo(location) {
+            //if (window.history.pushState) {
+            //    window.history.pushState(null, '', '#' + location);
+            //} else {
+            if (typeof location === 'string') {
+                location = {path: location};
+            }
+
+            var loc = location.path;
+            if (location.params) {
+                loc += '?' + paramsToQuery(location.params);
+
+            }
+            window.location.hash = '#' + loc;
+            //}
+        }
+        function replacePath(location) {
+            window.location.replace(location);
+        }
+        function redirectTo(location, newWindow) {
+            if (newWindow) {
+                window.open(location);
+            } else {
+                window.location.replace(location);
+            }
+        }
+
         return {
             addRoute: addRoute,
             listRoutes: listRoutes,
             findCurrentRoute: findCurrentRoute,
             getCurrentRequest: getCurrentRequest,
-            findRoute: findRoute
+            findRoute: findRoute,
+            
+            navigateTo: navigateTo,
+            redirectTo: redirectTo
         };
     }
-    
+
     return {
-        make: function(config) {
+        make: function (config) {
             return factory(config);
         }
     };
