@@ -34,10 +34,19 @@
  */
 define([], function () {
     'use strict';
-    function factory () {
+    function factory (config) {
         // Routing
         var routes = [],
-            defaultRoute = null;
+            defaultRoute = config.defaultRoute,
+            notFoundRoute = config.notFoundRoute;
+        
+        if (!defaultRoute) {
+            throw new Error('The defaultRoute must be provided');
+        }
+        if (!notFoundRoute) {
+            throw new Error('The notFound route must be provided');
+        }
+        
         function addRoute(pathSpec) {
             /*
              * The path spec is an array of elements. Each element is either a
@@ -49,10 +58,6 @@ define([], function () {
             /* TODO: better mapping method for routes. */
             /* still, with a relatively short list of routes, this is far from a performance issue. */
             routes.push(pathSpec);
-        }
-
-        function setDefaultRoute(routeSpec) {
-            defaultRoute = routeSpec;
         }
 
         function parseQueryString(s) {
@@ -96,6 +101,12 @@ define([], function () {
        
         function findRoute(req) {
             var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
+            if ( (req.path.length === 0) && (!req.queryParams || Object.keys(req.queryParams) === 0) ) {
+                return {
+                    params: {},
+                    route: notFoundRoute
+                };
+            }
             for (i = 0; i < routes.length; i += 1) {
                 route = routes[i];
                 if (route.path.length !== req.path.length) {
@@ -156,14 +167,13 @@ define([], function () {
             listRoutes: listRoutes,
             findCurrentRoute: findCurrentRoute,
             getCurrentRequest: getCurrentRequest,
-            findRoute: findRoute,
-            setDefaultRoute: setDefaultRoute
+            findRoute: findRoute
         };
     }
     
     return {
-        make: function() {
-            return factory();
+        make: function(config) {
+            return factory(config);
         }
     };
 });
