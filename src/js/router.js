@@ -104,7 +104,7 @@ define([], function () {
             if ( (req.path.length === 0) && (!req.queryParams || Object.keys(req.queryParams) === 0) ) {
                 return {
                     params: {},
-                    route: notFoundRoute
+                    route: defaultRoute
                 };
             }
             for (i = 0; i < routes.length; i += 1) {
@@ -146,7 +146,7 @@ define([], function () {
             } else {
                 return {
                     params: {},
-                    route: defaultRoute                    
+                    route: notFoundRoute                    
                 };
             }
             return foundRoute;

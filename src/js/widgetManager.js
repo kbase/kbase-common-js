@@ -6,8 +6,10 @@
  white: true
  */
 define([
+    'promise',
+    'kb_widgetAdapters_objectWidget'
 ],
-    function () {
+    function (Promise, widgetAdapter) {
         'use strict';
         
         function factory(config) {
@@ -31,6 +33,23 @@ define([
             function getWidget(widgetId) {
                 return widgets[widgetId];
             }
+            
+            function makeFactoryWidget(widget, config) {
+                return new Promise(function (resolve) {
+                    require([widget.module], function (factory) {
+                        var w = factory.make(config);
+                        resolve(w);
+                    });
+                });                
+            }
+            
+            function makeObjectWidget(widget, config) {
+                return Promise.try(function () {
+                    config.config = widget;
+                    return widgetAdapter.make(widget, config);
+                });
+            }
+            
             function makeWidget(widgetId, config) {
                 var widget = widgets[widgetId];
                 if (!widget) {
@@ -41,18 +60,12 @@ define([
                 switch (widget.type) {
                     case 'factory': 
                         return makeFactoryWidget(widget, config);
+                    case 'object':
+                        return makeObjectWidget(widget, config);
                     default:
                         throw new Error('Unsupported widget type ' + widget.type);
                 }
                 
-            }
-            function makeFactoryWidget(widget, config) {
-                return new Promise(function (resolve) {
-                    require([widget.module], function (factory) {
-                        var w = factory.make(config);
-                        resolve(w);
-                    });
-                });                
             }
             
           
