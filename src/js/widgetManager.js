@@ -1,5 +1,5 @@
 /*global
- define, console
+ define, require
  */
 /*jslint
  browser: true,
