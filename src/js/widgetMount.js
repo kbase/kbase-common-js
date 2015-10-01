@@ -27,7 +27,7 @@ define([
             container = mount.appendChild(container);
             container.id = html.genId();
             // container = dom.append(mount, dom.createElement('div'));
- 
+
             function mountWidget(widgetId, params) {
                 // stop the old one
                 return new Promise(function (resolve, reject) {
@@ -67,29 +67,25 @@ define([
                             };
 
                             /* TODO: config threaded here? */
+                            // init method is optional
                             Promise.try(function () {
-                                return widget.init
-                             })
+                                return widget.init;
+                            })
                                 .then(function () {
                                     var c = dom.createElement('div');
                                     c.id = mountedWidget.id;
                                     container.innerHTML = '';
                                     dom.append(container, c);
                                     mountedWidget.container = c;
-                                    widget.attach(c)
-                                        .then(function () {
-                                            // TODO: params for start
-                                            widget.start(params)
-                                                .then(function () {
-                                                    resolve();
-                                                })
-                                                .catch(function (err) {
-                                                    reject(err);
-                                                });
-                                        })
-                                        .catch(function (err) {
-                                            reject(err);
-                                        });
+                                    return widget.attach(c);
+                                })
+                                .then(function () {
+                                    if (widget.start) {
+                                        return widget.start(params);
+                                    }
+                                })
+                                .then(function () {
+                                    resolve();
                                 })
                                 .catch(function (err) {
                                     console.log('ERROR initializing panel');
