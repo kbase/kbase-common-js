@@ -34,7 +34,7 @@ define([
         function addWidget(widgetId, config) {
             config = config || {};
             config.runtime = runtime;
-            var widgetMaker = runtime.makeWidget(widgetId, config),
+            var widgetMaker = runtime.getService('widget').makeWidget(widgetId, config),
                 id = html.genId(),
                 rec = {
                     id: id,

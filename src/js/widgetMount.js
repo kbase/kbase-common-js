@@ -54,7 +54,7 @@ define([
                     }))
                         .then(function () {
                             // return runtime.ask('widgetManager', 'makeWidget', widgetId);
-                            return runtime.makeWidget(widgetId, {
+                            return runtime.getService('widget').makeWidget(widgetId, {
                                 runtime: runtime
                             });
                         })
