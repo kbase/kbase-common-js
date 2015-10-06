@@ -2,7 +2,7 @@
 /*jslint browser:true  vars: true */
 define([
     'bluebird',
-    'kb_common_asyncQueue2'
+    'kb_common_asyncQueue'
 ],
     function (Promise, asyncQueue) {
 
