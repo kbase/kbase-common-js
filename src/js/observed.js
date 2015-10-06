@@ -37,13 +37,13 @@ define([
     'kb_common_utils', 
     'kb_common_asyncQueue', 
     'bluebird'
-], function (Utils, AsyncQueue, Promise) {
+], function (Utils, fAsyncQueue, Promise) {
     "use strict";
     function factory() {
         
         var state = {},
             listeners = {},
-            queue = Object.create(AsyncQueue).init();
+            queue = fAsyncQueue.make();
         
         /**
          * Sets a state object for the given property path.
