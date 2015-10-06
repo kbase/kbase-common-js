@@ -107,7 +107,7 @@ define([
 //            function addService(type, def) {
 //
 //            }
-            function installService(type, def) {
+            function installIntoService(type, def) {
                 return Promise.try(function () {
                     var service = runtime.getService(type);
                     if (!service) {
@@ -120,26 +120,7 @@ define([
                     if (service.pluginHandler) {
                         return service.pluginHandler(def);
                     }
-                });
-                
-                // Install Routes
-                //arrayExtend(installSteps, installRoutes(pluginDef.install.routes));
-
-                // Install main menu items.
-                //arrayExtend(installSteps, installMenus(pluginDef.install.menu));
-
-                // Install widgets
-                //arrayExtend(installSteps, installWidgets(pluginDef.install.widgets));
-
-                // Install type capabilities.
-                //arrayExtend(installSteps, installTypes(pluginConfig.install.types));
-
-                // Install boot.
-                // arrayExtend(installSteps, installBoot(pluginConfig.install.boot));
-                //return new Promise(function (resolve) {
-                //    console.log('This would be installing the service: ' + type);
-                //    resolve();
-                //});
+                });                
             }
 
             function installPlugin(pluginLocation, pluginDef) {
@@ -196,7 +177,7 @@ define([
                             }
                         };
                     });
-
+                    
                     // Now install any routes.
                     if (pluginDef.install) {
                         require(dependencies, function () {
@@ -204,12 +185,9 @@ define([
 
                             Object.keys(pluginDef.install).forEach(function (serviceName) {
                                 var installDef = pluginDef.install[serviceName],
-                                    intallationPromise = installService(serviceName, installDef);
-                                //console.log('install def');
-                                //console.log(installDef);
+                                    intallationPromise = installIntoService(serviceName, installDef);
                                 arrayExtend(installSteps, [intallationPromise]);
                             });
-                            //console.log('HERE');
                             // Do all of the install steps.
                             Promise.all(installSteps)
                                 .then(function (doneSteps) {

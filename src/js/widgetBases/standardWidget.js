@@ -134,6 +134,7 @@ define([
                 send: send,
                 getState: getState,
                 setState: setState,
+                setHtml: setHtml,
                 addDomEvent: addDomEvent
             });
 
