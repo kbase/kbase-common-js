@@ -1,14 +1,19 @@
 /*global define: true */
 /*jslint browser:true  vars: true */
-define(['bluebird'],
-    function (Promise) {
+define([
+    'bluebird',
+    'kb_common_asyncQueue2'
+],
+    function (Promise, asyncQueue) {
 
 
         function factory(config) {
             // Very simple message system.
-            var channels = {};
-            var listeners = {};
-            var subId = 0;
+            var channels = {},
+                listeners = {},
+                subId = 0,
+                queue = asyncQueue.make();
+            
             function nextSubId() {
                 subId += 1;
                 return 'sub_' + subId;
@@ -95,23 +100,32 @@ define(['bluebird'],
 
                 var listeners = messageListener.listeners;
                 var ps = listeners.map(function (subDef) {
-                    return Promise.try(function () {
-                        try {
-                            return subDef.handler(pubDef.data);
-                        } catch (ex) {
-                            throw {
-                                name: 'SendError',
-                                message: 'Exception running message ' + messageName + ', sub ' + subId,
-                                data: ex,
-                                suggestion: 'This is an application error, not your fault'
-                            };
-                        }
+                    return new Promise(function (resolve, reject) {
+                        queue.addItem({
+                            channel: channelName,
+                            message: messageName,
+                            onRun: function () {
+                                try {
+                                    resolve(subDef.handler(pubDef.data));
+                                } catch (ex) {
+                                    reject({
+                                        name: 'SendError',
+                                        message: 'Exception running message ' + messageName + ', sub ' + subId,
+                                        data: ex,
+                                        suggestion: 'This is an application error, not your fault'
+                                    });
+                                }
+                            },
+                            onError: function (err) {
+                                reject(err);
+                            }
+                        });
                     });
                 });
                 if (pubDef.propogate) {
-                    return Promise.all(ps);
+                    return Promise.settle(ps);
                 } else {
-                    return Promise.all(ps).catch(function (err) {
+                    return Promise.settle(ps).catch(function (err) {
                         console.log('messenger send error');
                         console.log(err);
                     });

@@ -226,7 +226,7 @@ define([
              * @returns {SessionObject} the current session object.
              */
             function refreshSession() {
-                setSession(importSessionFromCookie());
+                setSession(importFromCookie());
                 return sessionObject;
             }
 
@@ -309,7 +309,7 @@ define([
              * @returns {SessionObject|null} a kbase session object or null
              * if there is no valid session cookie.
              */
-            function importSessionFromCookie() {
+            function importFromCookie() {
                 var sessionCookie = Cookie.getItem(cookieName);
 
                 if (!sessionCookie) {
@@ -365,7 +365,7 @@ define([
              * @returns {SessionObject|null} a validated Session Object, or null
              * if no session or an invalid session was provided.
              */
-            function importSessionFromAuthObject(kbaseSession) {
+            function importFromAuthObject(kbaseSession) {
                 // Auth object has fields un, user_id, kbase_sessionid, token. If any are missing, we void the session (if any)
                 // cookies and pretend we have nothing.
                 // NB: the object returned from the auth service does NOT have the un field.
@@ -453,7 +453,7 @@ define([
                         },
                         success: function (data, res, jqXHR) {
                             if (data.kbase_sessionid) {
-                                setSession(importSessionFromAuthObject(data));
+                                setSession(importFromAuthObject(data));
                                 if (!options.disableCookie) {
                                     setSessionCookie();
                                 }
@@ -536,12 +536,9 @@ define([
                     return sessionObject.token;
                 }
             }
-
             // Setup
 
-            setSession(importSessionFromCookie());
-
-
+            
             // API
 
             return {
@@ -552,7 +549,9 @@ define([
                 getRealname: getRealname,
                 getSessionId: getSessionId,
                 getAuthToken: getAuthToken,
-                isLoggedIn: isLoggedIn
+                isLoggedIn: isLoggedIn,
+                importFromCookie: importFromCookie,
+                setSession: setSession
             };
         }
 

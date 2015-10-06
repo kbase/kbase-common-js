@@ -16,7 +16,7 @@ define([
 
         var widgets = [],
             runtime = config.runtime;
-        
+
         if (!runtime) {
             throw {
                 name: 'RuntimeMissing',
@@ -25,10 +25,29 @@ define([
             };
         }
 
-        function addWidgets(widgetIds, config) {
-            widgetIds.map(function (widgetId) {
-                return addWidget(widgetId, config);
-            });
+        function eachArrays(arrays, fun) {
+            var len = arrays[0].length,
+                i, j, temp;
+            for (i = 0; i < len; i += 1) {
+                temp = [];
+                for (j = 0; j < arrays.length; j += 1) {
+                    temp.push(arrays[j][i]);
+                }
+                fun(temp);
+            }
+        }
+        function mapArrays(arrays, fun) {
+            var result = [],
+                len = arrays[0].length,
+                i, j, temp;
+            for (i = 0; i < len; i += 1) {
+                temp = [];
+                for (j = 0; j < arrays.length; j += 1) {
+                    temp.push(arrays[j][i]);
+                }
+                result.push(fun(temp));
+            }
+            return result;
         }
 
         function addWidget(widgetId, config) {
@@ -44,6 +63,12 @@ define([
             return id;
         }
 
+        function addWidgets(widgetIds, config) {
+            widgetIds.map(function (widgetId) {
+                return addWidget(widgetId, config);
+            });
+        }
+
         function makeWidgets() {
             return Promise.all(widgets.map(function (rec) {
                 return rec.widgetMaker;
@@ -56,139 +81,78 @@ define([
                 });
         }
 
-        function eachArrays(arrays, fun) {
-            var len = arrays[0].length,
-                i, j;
-            for (i = 0; i < len; i += 1) {
-                var temp = [];
-                for (j = 0; j < arrays.length; j += 1) {
-                    temp.push(arrays[j][i]);
-                }
-                fun(temp);
-            }
-        }
-        function mapArrays(arrays, fun) {
-            var result = [],
-                len = arrays[0].length,
-                i, j;
-            for (i = 0; i < len; i += 1) {
-                var temp = [];
-                for (j = 0; j < arrays.length; j += 1) {
-                    temp.push(arrays[j][i]);
-                }
-                result.push(fun(temp));
-            }
-            return result;
-        }
-
 
         function init(config) {
-            return new Promise(function (resolve, reject) {
-                makeWidgets()
-                    .then(function () {
-                        return Promise.all(widgets.map(function (rec) {
-                            if (rec.widget.init) {
-                                return rec.widget.init();
-                            }
-                        }).filter(function (next) {
-                            next ? true : false;
-                        }));
-                    })
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
-        } 
+            return makeWidgets()
+                .then(function () {
+                    return Promise.all(widgets.map(function (rec) {
+                        console.log(rec);
+                        if (rec.widget.init) {
+                            return rec.widget.init(config);
+                        }
+                    }).filter(function (next) {
+                        if (next) {
+                            return true;
+                        }
+                        return false;
+                    }));
+                });
+        }
 
-        function attach(node) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
-                    // find node by id.
-                    if (!rec.node) {
-                        rec.node = dom.findById(rec.id);
-                    }
-                    return rec.widget.attach(rec.node);
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+        function attach() {
+            return Promise.all(widgets.map(function (rec) {
+                // find node by id.
+                if (!rec.node) {
+                    rec.node = dom.findById(rec.id);
+                }
+                return rec.widget.attach(rec.node);
+            }));
         }
 
         function start(params) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
-                    return rec.widget.start(params);
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+            return Promise.all(widgets.map(function (rec) {
+                console.log('widgetSet: starting widget');
+                console.log(rec);
+                return rec.widget.start(params);
+            }));
         }
 
         function run(params) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
+            return Promise.all(widgets.map(function (rec) {
+                if (rec.widget.run) {
                     return rec.widget.run(params);
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+                }
+            }).filter(function (next) {
+                if (next) {
+                    return true;
+                }
+                return false;
+            }));
         }
 
-        function stop(params) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
-                    return rec.widget.stop();
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+        function stop() {
+            return Promise.all(widgets.map(function (rec) {
+                return rec.widget.stop();
+            }));
         }
 
-        function detach(params) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
-                    return rec.widget.deatch();
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+        function detach() {
+            return Promise.all(widgets.map(function (rec) {
+                if (rec.widget.detach) {
+                    return rec.widget.detach();
+                }
+            }).filter(function (next) {
+                if (next) {
+                    return true;
+                }
+                return false;
+            }));
         }
 
-        function destroy(params) {
-            return new Promise(function (resolve, reject) {
-                Promise.all(widgets.map(function (rec) {
-                    return rec.widget.destroy();
-                }))
-                    .then(function () {
-                        resolve();
-                    })
-                    .catch(function (err) {
-                        reject(err);
-                    });
-            });
+        function destroy() {
+            return Promise.all(widgets.map(function (rec) {
+                return rec.widget.destroy();
+            }));
         }
 
         return {
@@ -201,7 +165,7 @@ define([
             run: run,
             stop: stop,
             detach: detach,
-            destory: destroy
+            destroy: destroy
         };
     }
 

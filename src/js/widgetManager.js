@@ -34,11 +34,13 @@ define([
                 return widgets[widgetId];
             }
             
-            function makeFactoryWidget(widget, config) {
-                return new Promise(function (resolve) {
+             function makeFactoryWidget(widget, config) {
+                return new Promise(function (resolve, reject) {
                     require([widget.module], function (factory) {
-                        var w = factory.make(config);
-                        resolve(w);
+                        if (factory.make === undefined) {
+                            reject('Factory widget does not have a "make" method: ' + widget.id + ', ' + widget.module);
+                        }
+                        resolve(factory.make(config));
                     });
                 });                
             }

@@ -31,7 +31,7 @@ define([
             function mountWidget(widgetId, params) {
                 // stop the old one
                 return new Promise(function (resolve, reject) {
-                    // Stop and unmount current panel.
+                    // Stop and unmount current widget.
                     (new Promise(function (resolve, reject) {
                         if (mountedWidget) {
                             var widget = mountedWidget.widget;
@@ -59,6 +59,9 @@ define([
                             });
                         })
                         .then(function (widget) {
+                            if (widget === undefined) {
+                                throw new Error('Widget could not be created: ' + widgetId);
+                            }
                             mountedWidget = {
                                 id: html.genId(),
                                 widget: widget,
@@ -69,7 +72,9 @@ define([
                             /* TODO: config threaded here? */
                             // init method is optional
                             Promise.try(function () {
-                                return widget.init;
+                                if (widget.init) {
+                                    return widget.init();
+                                }
                             })
                                 .then(function () {
                                     var c = dom.createElement('div');
@@ -85,10 +90,15 @@ define([
                                     }
                                 })
                                 .then(function () {
+                                    if (widget.run) {
+                                        return widget.run(params);
+                                    }
+                                })
+                                .then(function () {
                                     resolve();
                                 })
                                 .catch(function (err) {
-                                    console.log('ERROR initializing panel');
+                                    console.log('ERROR initializing widget');
                                     console.log(err);
                                     reject(err);
                                 });

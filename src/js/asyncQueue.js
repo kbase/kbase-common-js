@@ -1,19 +1,10 @@
-/**
- * Yet another async queue
- * 
- * @module AsyncQueue
- * @author Erik Pearson <eapearson@lbl.gov>
- * @version 0.0.2
- * 
- * @todo complete testing
- * @todo determine if methods are unused, and if so, remove them
- * 
- */
+/*global define */
+/*jslint white: true */
 
-
-
-define(['bluebird'], function (Promise) {
-    "use strict";
+define([
+    'promise'
+], function (Promise) {
+    'use strict';
 
     /**
      * A simple first in last out (FILO) job stack which is allowed to build up 
@@ -24,7 +15,7 @@ define(['bluebird'], function (Promise) {
      * - jobs added during the same interpreter cycle will be run in the order
      *   they were added.
      * - jobs added during the queue pause interval will be run on the same
-     *   "run cycle" of the queue.
+     *   'run cycle' of the queue.
      * - jobs have an optional error handler to allow an exception to be 
      *   handled in a job-specfic manner.
      * - otherwise, job exceptions are ignored.
@@ -37,51 +28,14 @@ define(['bluebird'], function (Promise) {
      * 
      * @exports AsyncQueue/AsyncQueue
      */
-    var AsyncQueue = Object.create({}, {
-        version: {
-            value: '0.0.2',
-            writable: false
-        },
-        /**
-         * Initialize the instance state for this object.
-         * 
-         * @function init
-         * 
-         * @param {object} cfg - configuration information
-         * 
-         * @returns {object} a reference to the object itself for chaining
-         * 
-         * @private
-         */
-        init: {
-            value: function (cfg) {
-                this.queue = [];
-                this.queuePauseTime = (cfg && cfg.queuePauseTime) || 100;
-                return this;
-            }
-        },
-       
-        /**
-         * Run the queue, processing all pending items.
-         * It is designed to be run at arbitrary times, so it will set a timeout
-         * after which it will process the queue. This allows other items to be
-         * added to the queue.
-         * 
-         * @function run
-         * 
-         * @returns {this} a reference to the object, to enable chaining.
-         * 
-         * @private
-         */
-        run: {
-            value: function () {
-                var that = this;
-                this.timer = window.setTimeout(function () {
-                    that.processQueue();
-                }.bind(this), this.queuePauseTime);
-                return this;
-            }
-        },
+
+    function factory(config) {
+        var queue = [],
+            queuePauseTime = (config && config.queuePauseItme) || 100,
+            itemId = 0,
+            timer;
+
+
         /**
          * Process the entire queue, executing all items in the queue in order.
          * 
@@ -91,32 +45,67 @@ define(['bluebird'], function (Promise) {
          * 
          * @private
          */
-        processQueue: {
-            value: function () {
-                var queue = this.queue;
-                this.queue = [];
-                var item = queue.shift();
-                while (item) {
+        function processQueue() {
+            var queueToProcess = queue;
+            queue = [];
+            stop();
+            var item = queueToProcess.shift();
+            while (item) {
+                try {
+                    //if (item.channel && item.channel === 'ui') {
+                    //    console.log('processing queue item');
+                    //    console.log(item);
+                    //}
+//                    Promise.try(function () {
+//                        return item.onRun(item);
+//                    })
+//                        .then(function () {
+//                            // item.result = result;
+//                            start();
+//                        })
+//                        .catch(function (err) {
+//                            console.log('Error processing queue item');
+//                            console.log(err);
+//                            start();
+//                            // item.error = err;
+//                        });
                     try {
-                        item.onRun(this);
-                    } catch (exOnRun) {
-                        if (item.onError) {
-                            try {
-                                item.onError(exOnRun);
-                            } catch (ignore) {
-                                // console.log('ERROR running onerror');
-                                // console.log(e);
-                            }
+                        item.onRun(item);
+                    } catch (ex) {
+                        console.log('Error processing queue item');
+                        console.log(err);
+                    } finally {
+                        start();
+                    }
+                } catch (exOnRun) {
+                    if (item.onError) {
+                        try {
+                            item.onError(exOnRun);
+                        } catch (ignore) {
+                            // console.log('ERROR running onerror');
+                            // console.log(e);
                         }
                     }
-                    item = queue.shift();
                 }
-                return this;
+                item = queueToProcess.shift();
             }
-        },
-        
+        }
+
+
+
+        function start() {
+            timer = window.setTimeout(function () {
+                processQueue();
+            }, queuePauseTime);
+        }
+
+        function stop() {
+            window.clearTimeout(timer);
+            timer = null;
+        }
+
         // PUBLIC
-         /**
+        /**
          * Add an item to the queue.
          * 
          * @function addItem
@@ -127,13 +116,20 @@ define(['bluebird'], function (Promise) {
          * 
          * @public
          */
-        addItem: {
-            value: function (item) {
-                this.queue.push(item);
-                this.run();
-                return this;
-            }
+        function addItem(item) {
+            itemId += 1;
+            item.id = itemId;
+            queue.push(item);
+            start();
         }
-    });
-    return AsyncQueue;
+
+        return {
+            addItem: addItem
+        };
+    }
+    return {
+        make: function (config) {
+            return factory(config);
+        }
+    };
 });
