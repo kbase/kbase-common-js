@@ -207,7 +207,7 @@ define([
                     var cookieString = makeSessionCookie();
                     Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');
                     // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
-                    var kbaseSession = makeKBaseSession();
+                    var kbaseSession = makeKbaseSession();
                     // This is for compatability with the current state of the narrative ui, which uses this
                     // as a flag for being authenticated.
                     kbaseSession.success = 1;
@@ -458,7 +458,7 @@ define([
                                     setSessionCookie();
                                 }
                                 // options.success(makeKBaseSession());
-                                resolve(makeKBaseSession());
+                                resolve(makeKbaseSession());
                             } else {
                                 reject(data.error_msg);
                                 //options.error({
