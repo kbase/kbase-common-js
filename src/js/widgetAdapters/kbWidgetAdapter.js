@@ -9,9 +9,8 @@ define([
     'jquery',
     'underscore',
     'bluebird',
-    'kb.runtime',
-    'kb.html'
-], function ($, _, Promise, R, html) {
+    'kb_common_html'
+], function ($, _, Promise, html) {
     'use strict';
     
         function createBSPanel($node, title) {
@@ -30,7 +29,7 @@ define([
         }
     
         function adapter(config) {
-            var mount, container, $container;
+            var mount, container, $container, runtime = config.runtime;
             
             var module = config.module;            
             var jqueryObjectName = config.jquery_object;
@@ -82,8 +81,8 @@ define([
                         objNameOrId: params.objectId,
                         // commonly used, but really should remove this.
                         /* TODO: remove default params like this */
-                        ws_url: R.getConfig('services.workspace.url'),
-                        token: R.getAuthToken()
+                        ws_url: runtime.getConfig('services.workspace.url'),
+                        token: runtime.getService('session').getAuthToken()
                     });
                     $container[jqueryObjectName](widgetConfig);
                     resolve();

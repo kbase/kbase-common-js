@@ -12,9 +12,9 @@ define([
                 eventsAttached = [];
             
             // DOM EVENTS
-            function addEvent(type, handler, id, data) {
-                if (!id) {
-                    id = html.genId();
+            function addEvent(type, handler, selector, data) {
+                if (!selector) {
+                    selector = html.genId();
                 }
                 var event = {
                     type: type,

@@ -30,28 +30,21 @@ define([
 
             function mountWidget(widgetId, params) {
                 // stop the old one
-                return new Promise(function (resolve, reject) {
                     // Stop and unmount current widget.
-                    (new Promise(function (resolve, reject) {
+                    return Promise.try(function () {
                         if (mountedWidget) {
                             var widget = mountedWidget.widget;
-                            widget.stop()
+                            return widget.stop()
                                 .then(function () {
-                                    widget.detach()
-                                        .then(function () {
-                                            resolve();
-                                        })
-                                        .catch(function (err) {
-                                            reject(err);
-                                        });
+                                    return widget.detach();
                                 })
-                                .catch(function (err) {
-                                    reject(err);
+                                .then(function () {
+                                    if (widget.destroy) {
+                                        return widget.destroy();
+                                    }
                                 });
-                        } else {
-                            resolve();
                         }
-                    }))
+                    })
                         .then(function () {
                             // return runtime.ask('widgetManager', 'makeWidget', widgetId);
                             return runtime.getService('widget').makeWidget(widgetId, {
@@ -71,19 +64,20 @@ define([
 
                             /* TODO: config threaded here? */
                             // init method is optional
-                            Promise.try(function () {
+                            return Promise.try(function () {
                                 if (widget.init) {
                                     return widget.init();
                                 }
                             })
-                                .then(function () {
-                                    var c = dom.createElement('div');
-                                    c.id = mountedWidget.id;
-                                    container.innerHTML = '';
-                                    dom.append(container, c);
-                                    mountedWidget.container = c;
-                                    return widget.attach(c);
-                                })
+                        })
+                        .then(function () {
+                            var c = dom.createElement('div');
+                            c.id = mountedWidget.id;
+                            container.innerHTML = '';
+                            dom.append(container, c);
+                            mountedWidget.container = c;
+                            return widget.attach(c);
+                        })
                                 .then(function () {
                                     if (widget.start) {
                                         return widget.start(params);

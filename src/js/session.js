@@ -240,14 +240,14 @@ define([
              * 
              * @returns {KBaseSessionObject}
              */
-            function getKBaseSession() {
+            function getKbaseSession() {
                 refreshSession();
                 if (!sessionObject) {
                     return null;
                 }
-                return makeKBaseSession();
+                return makeKbaseSession();
             }
-            function makeKBaseSession() {
+            function makeKbaseSession() {
                 if (!sessionObject) {
                     return null;
                 }
@@ -551,7 +551,8 @@ define([
                 getAuthToken: getAuthToken,
                 isLoggedIn: isLoggedIn,
                 importFromCookie: importFromCookie,
-                setSession: setSession
+                setSession: setSession,
+                getKbaseSession: getKbaseSession
             };
         }
 

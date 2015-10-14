@@ -12,13 +12,16 @@ define([
 ], function (html, dom, Promise) {
     'use strict';
 
-    function factory(config) {
+    function factory(cfg) {
 
         var widgets = [],
+            config = cfg || {},
             runtime = config.runtime;
 
         if (!runtime) {
             throw {
+                type: 'ArgumentError',
+                reason: 'RuntimeMissing',
                 name: 'RuntimeMissing',
                 message: 'The rumtime argument was not provided',
                 suggestion: 'This is a programmer error, not your fault.'
@@ -53,6 +56,7 @@ define([
         function addWidget(widgetId, config) {
             config = config || {};
             config.runtime = runtime;
+            console.log('adding widget with runtime'); console.log(runtime);
             var widgetMaker = runtime.getService('widget').makeWidget(widgetId, config),
                 id = html.genId(),
                 rec = {
@@ -104,6 +108,13 @@ define([
                 // find node by id.
                 if (!rec.node) {
                     rec.node = dom.findById(rec.id);
+                }
+                if (!rec.node) {
+                    throw {
+                        type: 'WidgetError',
+                        reason: 'MissingAttachmentNode',
+                        message:' The widget ' + rec.title + ' does not have a valid node at ' + rec.id
+                    };
                 }
                 return rec.widget.attach(rec.node);
             }));

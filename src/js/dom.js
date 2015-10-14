@@ -28,6 +28,13 @@ define([], function () {
     function qs(selector) {
         return document.querySelector(selector);
     }    
+    function qsa(selector) {
+        var result = document.querySelectorAll(selector);
+        if (result === null) {
+            return [];
+        };
+        return Array.prototype.slice(result);
+    }    
     function setHtml(nodeOrSelector, content) {
         var node;
         if (typeof nodeOrSelector === 'string') {
@@ -52,6 +59,7 @@ define([], function () {
         findById: findById,
         nodeForId: nodeForId,
         getById: findById,
-        qs: qs
+        qs: qs,
+        qsa: qsa
     };
 });

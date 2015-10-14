@@ -344,7 +344,10 @@ define(['underscore'], function (_) {
                 if (key.label) {
                     return key.label;
                 }
-                return key.key
+                if (typeof key === 'object') {
+                    key = key.key;
+                }
+                return key
                     .replace(/(id|Id)/g, 'ID')
                     .split(/_/g).map(function (word) {
                         return word.charAt(0).toUpperCase() + word.slice(1);
@@ -376,7 +379,7 @@ define(['underscore'], function (_) {
                 th = tag('th'),
                 td = tag('td');
            
-            var result = table({class: 'table table-stiped table-bordered'},[
+            var result = table({class: 'table table-stiped table-bordered'},
                 columns.forEach(function(column) {
                     return tr([
                        th(keyToLabel(column)),
@@ -385,7 +388,7 @@ define(['underscore'], function (_) {
                        })
                     ]);
                 })
-            ]);
+            );
             return result;
         }
         
