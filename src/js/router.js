@@ -37,8 +37,8 @@ define([], function () {
     function factory(config) {
         // Routing
         var routes = [],
-            defaultRoute = config.defaultRoute,
-            notFoundRoute = config.notFoundRoute;
+                defaultRoute = config.defaultRoute,
+                notFoundRoute = config.notFoundRoute;
 
         if (!defaultRoute) {
             throw new Error('The defaultRoute must be provided');
@@ -62,7 +62,7 @@ define([], function () {
 
         function parseQueryString(s) {
             var fields = s.split(/[\?\&]/),
-                params = {};
+                    params = {};
             fields.forEach(function (field) {
                 if (field.length > 0) {
                     var pair = field.split('=');
@@ -76,8 +76,8 @@ define([], function () {
 
         function getCurrentRequest() {
             var path = [],
-                query = {},
-                hash, pathQuery;
+                    query = {},
+                    hash, pathQuery;
 
             // The path is (for now) from the hash component.
             if (window.location.hash && window.location.hash.length > 1) {
@@ -103,6 +103,7 @@ define([], function () {
             var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
             if ((req.path.length === 0) && (Object.keys(req.query).length === 0)) {
                 return {
+                    request: req,
                     params: {},
                     route: defaultRoute
                 };
@@ -127,6 +128,7 @@ define([], function () {
                 }
                 if (found) {
                     foundRoute = {
+                        request: req,
                         params: params,
                         route: route
                     };
@@ -145,6 +147,7 @@ define([], function () {
                 });
             } else {
                 return {
+                    request: req,
                     params: {},
                     route: notFoundRoute
                 };
@@ -171,6 +174,12 @@ define([], function () {
          * @returns {undefined}
          */
 
+        function paramsToQuery(params) {
+            return Object.keys(params).map(function (key) {
+                return key + '=' + encodeURIComponent(params[key]);
+            }).join('&');
+        }
+
         function navigateTo(location) {
             //if (window.history.pushState) {
             //    window.history.pushState(null, '', '#' + location);
@@ -178,11 +187,15 @@ define([], function () {
             if (typeof location === 'string') {
                 location = {path: location};
             }
-
-            var loc = location.path;
+            // path may be an array.
+            var loc;
+            if (location.path.pop) {
+                loc = location.path.join('/');
+            } else {
+                loc = location.path;
+            }
             if (location.params) {
                 loc += '?' + paramsToQuery(location.params);
-
             }
             window.location.hash = '#' + loc;
             //}
@@ -204,7 +217,6 @@ define([], function () {
             findCurrentRoute: findCurrentRoute,
             getCurrentRequest: getCurrentRequest,
             findRoute: findRoute,
-            
             navigateTo: navigateTo,
             redirectTo: redirectTo
         };
