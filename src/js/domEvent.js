@@ -10,30 +10,47 @@ define([
         function factory(config) {
             var eventsPendingAttachment = [],
                 eventsAttached = [];
-            
+
             // DOM EVENTS
-            function addEvent(type, handler, selector, data) {
-                if (!selector) {
-                    selector = html.genId();
+            function addEvent(type, handler, id, data) {
+                if (!id) {
+                    id = html.genId();
                 }
                 var event = {
                     type: type,
                     selector: '#' + id,
-                    nodeId: id,
                     handler: handler
                 };
                 eventsPendingAttachment.push(event);
                 return id;
             }
+            function attachEvent(type, handler, selector) {
+                var event;
+                if (typeof type === 'string') {
+                    event = {
+                        type: type,
+                        selector: selector,
+                        handler: handler
+                    };
+                } else {
+                    event = type;
+                }
+                eventsPendingAttachment.push(event);
+            }
+           
             function attachEvents() {
-                console.log(eventsPendingAttachment);
                 eventsPendingAttachment.forEach(function (event) {
-                    console.log('adding event for: ' + event.nodeId);
-                    event.node = dom.nodeForId(event.nodeId);
-                    if (event.node !== null) {
-                        event.listener = event.node.addEventListener(event.type, event.handler);
-                        eventsAttached.push(event);
-                    }
+                    var nodes = dom.qsa(event.selector);
+
+                   nodes.forEach(function (node) {
+                        eventsAttached.push({
+                            type: event.type,
+                            selector: event.selector,
+                            node: node,
+                            handler: event.handler,
+                            listener: node.addEventListener(event.type, event.handler, event.capture || false)
+                        });
+                    });
                 });
                 eventsPendingAttachment = [];
             }
@@ -49,6 +66,7 @@ define([
 
             return Object.freeze({
                 addEvent: addEvent,
+                attachEvent: attachEvent,
                 attachEvents: attachEvents,
                 detachEvents: detachEvents
             });
