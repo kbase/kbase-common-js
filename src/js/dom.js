@@ -27,20 +27,20 @@ define([], function () {
     }
     function qs(selector) {
         return document.querySelector(selector);
-    }    
+    }
     function qsa(selector) {
         var result = document.querySelectorAll(selector);
         if (result === null) {
             return [];
-        };
-        return Array.prototype.slice(result);
-    }    
+        }
+        return Array.prototype.slice.call(result);
+    }
     function setHtml(nodeOrSelector, content) {
         var node;
         if (typeof nodeOrSelector === 'string') {
             node = qs(nodeOrSelector);
             if (node === null) {
-                throw new Error('No node found for selector "'+nodeOrSelector+'"');
+                throw new Error('No node found for selector "' + nodeOrSelector + '"');
             }
         } else {
             node = nodeOrSelector;
