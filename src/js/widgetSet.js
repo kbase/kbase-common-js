@@ -55,8 +55,6 @@ define([
 
         function addWidget(widgetId, config) {
             config = config || {};
-            config.runtime = runtime;
-            console.log('adding widget with runtime'); console.log(runtime);
             var widgetMaker = runtime.getService('widget').makeWidget(widgetId, config),
                 id = html.genId(),
                 rec = {
@@ -85,12 +83,10 @@ define([
                 });
         }
 
-
         function init(config) {
             return makeWidgets()
                 .then(function () {
-                    return Promise.all(widgets.map(function (rec) {
-                        console.log(rec);
+                    return Promise.settle(widgets.map(function (rec) {
                         if (rec.widget.init) {
                             return rec.widget.init(config);
                         }
@@ -104,7 +100,7 @@ define([
         }
 
         function attach() {
-            return Promise.all(widgets.map(function (rec) {
+            return Promise.settle(widgets.map(function (rec) {
                 // find node by id.
                 if (!rec.node) {
                     rec.node = dom.findById(rec.id);
@@ -113,7 +109,7 @@ define([
                     throw {
                         type: 'WidgetError',
                         reason: 'MissingAttachmentNode',
-                        message:' The widget ' + rec.title + ' does not have a valid node at ' + rec.id
+                        message: ' The widget ' + rec.title + ' does not have a valid node at ' + rec.id
                     };
                 }
                 return rec.widget.attach(rec.node);
@@ -121,16 +117,16 @@ define([
         }
 
         function start(params) {
-            return Promise.all(widgets.map(function (rec) {
-                console.log('widgetSet: starting widget');
-                console.log(rec);
-                return rec.widget.start(params);
+            return Promise.settle(widgets.map(function (rec) {
+                if (rec.widget && rec.widget.start) {
+                    return rec.widget.start(params);
+                }
             }));
         }
 
         function run(params) {
-            return Promise.all(widgets.map(function (rec) {
-                if (rec.widget.run) {
+            return Promise.settle(widgets.map(function (rec) {
+                if (rec.widget && rec.widget.run) {
                     return rec.widget.run(params);
                 }
             }).filter(function (next) {
@@ -142,14 +138,16 @@ define([
         }
 
         function stop() {
-            return Promise.all(widgets.map(function (rec) {
-                return rec.widget.stop();
+            return Promise.settle(widgets.map(function (rec) {
+                if (rec.widget && rec.widget.stop) {
+                    return rec.widget.stop();
+                }
             }));
         }
 
         function detach() {
-            return Promise.all(widgets.map(function (rec) {
-                if (rec.widget.detach) {
+            return Promise.settle(widgets.map(function (rec) {
+                if (rec.widget && rec.widget.detach) {
                     return rec.widget.detach();
                 }
             }).filter(function (next) {
@@ -161,7 +159,7 @@ define([
         }
 
         function destroy() {
-            return Promise.all(widgets.map(function (rec) {
+            return Promise.settle(widgets.map(function (rec) {
                 return rec.widget.destroy();
             }));
         }
