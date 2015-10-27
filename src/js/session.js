@@ -18,6 +18,8 @@ define([
             var version = '0.2.0',
                 config = cfg || {},
                 cookieName = config.cookieName,
+                extraCookieNames = config.extraCookieNames,
+                useLocalStorage = config.useLocalStorage,
                 cookieMaxAge = config.cookieMaxAge || 36000,
                 loginUrl = config.loginUrl,
                 sessionObject,
@@ -206,6 +208,11 @@ define([
                 if (sessionObject) {
                     var cookieString = makeSessionCookie();
                     Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');
+                    if (extraCookieNames) {
+                        extraCookieNames.forEach(function (cookieName) {
+                            Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');                            
+                        });
+                    }
                     // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
                     var kbaseSession = makeKbaseSession();
                     // This is for compatability with the current state of the narrative ui, which uses this
@@ -270,6 +277,11 @@ define([
              */
             function removeSession() {
                 Cookie.removeItem(cookieName, '/');
+                if (extraCookieNames) {
+                    extraCookieNames.forEach(function (cookieName) {
+                        Cookie.removeItem(cookieName, '/');
+                    });
+                }
                 // Cookie.removeItem(cookieName, '/', 'kbase.us');
                 // Cookie.removeItem(narrCookieName, '/', 'kbase.us');
                 // Remove the localStorage session for compatability.

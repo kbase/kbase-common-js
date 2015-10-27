@@ -537,9 +537,29 @@ define(['bluebird', 'jquery'], function (Promise, $) {
                         }
                     }
                 };
-                return Object.create(Merger).merge(objA, objB);
+                if (objB === undefined) {
+                    return objA;
+                } else {
+                    return Object.create(Merger).merge(objA, objB);
+                }
             }
         },
+        
+        shallowMerge: {
+            value: function (objA, objB) {
+                if (!objB) {
+                    return objA;
+                }
+                if (!objA) {
+                    throw new Error('First argument not an object');
+                }
+                Object.keys(objB).forEach(function (key) {
+                    objA[key] = objB[key];
+                });
+                return objA;
+            }
+        },
+        
         /**
          * Given an ISO8601 date in full regalia, with a GMT/UTC timezone offset attached
          * in #### format, reformat the date into ISO8601 with no timezone.

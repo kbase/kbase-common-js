@@ -183,7 +183,7 @@ define([
          */
         function setError(key, err) {
             var newListeners = [];
-            if (this.listeners[key]) {                
+            if (listeners[key]) {                
                 listeners[key].forEach(function (item) {
                     queue.addItem({
                         onRun: (function (fun, err) {
@@ -327,8 +327,8 @@ define([
          */
         function whenItem(key, timeout) {
             var p = new Promise(function (resolve, reject) {
-                if (Utils.hasProp(this.state, key)) {
-                    var item = Utils.getProp(this.state, key);
+                if (Utils.hasProp(state, key)) {
+                    var item = Utils.getProp(state, key);
                     if (item.status === 'error') {
                         reject(item.error);
                     } else {

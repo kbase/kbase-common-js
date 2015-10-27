@@ -73,7 +73,7 @@ define(['underscore'], function (_) {
                 var fields = Object.keys(attribs).map(function (key) {
                     var value = attribs[key],
                         key = camelToHyphen(key);
-                    
+
                     if (typeof value === 'string') {
                         return key + ': ' + value;
                     }
@@ -141,7 +141,7 @@ define(['underscore'], function (_) {
                         switch (attribName) {
                             case 'style':
                                 value = makeStyleAttribs(value);
-                                break;                              
+                                break;
                             case 'data-bind':
                                 // reverse the quote char, since data-bind attributes 
                                 // can contain double-quote, which can't itself
@@ -258,7 +258,7 @@ define(['underscore'], function (_) {
                 }))
             ]);
         }
-        
+
         function makeTable(arg) {
             var table = tag('table'),
                 thead = tag('thead'),
@@ -305,12 +305,13 @@ define(['underscore'], function (_) {
                 ])
             ]);
         }
-        
+
         function makePanel(arg) {
             var div = tag('div'),
-                span = tag('span');
+                span = tag('span'),
+                klass = arg.class || 'default';
 
-            return div({class: 'panel panel-default'}, [
+            return div({class: 'panel panel-' + klass}, [
                 div({class: 'panel-heading'}, [
                     span({class: 'panel-title'}, arg.title)
                 ]),
@@ -333,25 +334,28 @@ define(['underscore'], function (_) {
                 i({class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom'})
             ]);
         }
-                // <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
-                // img({src: '/images/ajax-loader.gif'})
+        // <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
+        // img({src: '/images/ajax-loader.gif'})
 
         /*
          * 
          */
         function makeRotatedTable(data, columns) {
-            function keyToLabel(key) {
-                if (key.label) {
-                    return key.label;
+            function columnLabel(column) {
+                var key;
+                if (column.label) {
+                    return column.label;
                 }
-                if (typeof key === 'object') {
-                    key = key.key;
+                if (typeof column === 'string') {
+                    key = column;
+                } else {
+                    key = column.key;
                 }
                 return key
                     .replace(/(id|Id)/g, 'ID')
                     .split(/_/g).map(function (word) {
-                        return word.charAt(0).toUpperCase() + word.slice(1);
-                    })
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
                     .join(' ');
             }
             function columnValue(row, column) {
@@ -361,7 +365,7 @@ define(['underscore'], function (_) {
                 }
                 if (column.type) {
                     switch (column.type) {
-                        case 'bool': 
+                        case 'bool':
                             // yuck, use truthiness
                             if (rawValue) {
                                 return 'True';
@@ -374,24 +378,21 @@ define(['underscore'], function (_) {
                 return rawValue;
             }
 
-            var table = tag('table'), 
+            var table = tag('table'),
                 tr = tag('tr'),
                 th = tag('th'),
                 td = tag('td');
-           
             var result = table({class: 'table table-stiped table-bordered'},
-                columns.forEach(function(column) {
+                columns.map(function (column) {
                     return tr([
-                       th(keyToLabel(column)),
-                       data.map(function (row) {
-                           return td(columnValue(row, column));
-                       })
+                        th(columnLabel(column)), data.map(function (row) {
+                            return td(columnValue(row, column));
+                        })
                     ]);
-                })
-            );
+                }));
             return result;
         }
-        
+
         function flatten(html) {
             if (_.isString(html)) {
                 return html;
@@ -403,7 +404,7 @@ define(['underscore'], function (_) {
                 throw new Error('Not a valid html representation -- must be string or list');
             }
         }
-        
+
         function makeList(arg) {
             if (_.isArray(arg.items)) {
                 var ul = tag('ul'),
@@ -414,30 +415,30 @@ define(['underscore'], function (_) {
             }
             return 'Sorry, cannot make a list from that';
         }
-        
+
         function makeTabs(arg) {
             var ul = tag('ul'),
                 li = tag('li'),
                 a = tag('a'),
                 div = tag('div');
-            
+
             return div([
-                ul({class: 'nav nav-tabs', role: 'tablist'}, 
-                arg.tabs.map(function (tab, index) {
-                    var attribs = {
-                        role: 'presentation'
-                    };
-                    if (index === 0) {
-                        attribs.class = 'active';
-                    }
-                    return li(attribs, a({
-                        href: '#' + tab.id, 
-                        'aria-controls': 'home',
-                        role: 'tab',
-                        'data-toggle': 'tab'
-                    }, tab.label));
-                })),
-                div({class: 'tab-content'}, 
+                ul({class: 'nav nav-tabs', role: 'tablist'},
+                    arg.tabs.map(function (tab, index) {
+                        var attribs = {
+                            role: 'presentation'
+                        };
+                        if (index === 0) {
+                            attribs.class = 'active';
+                        }
+                        return li(attribs, a({
+                            href: '#' + tab.id,
+                            'aria-controls': 'home',
+                            role: 'tab',
+                            'data-toggle': 'tab'
+                        }, tab.label));
+                    })),
+                div({class: 'tab-content'},
                     arg.tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'tabpanel',
@@ -449,7 +450,7 @@ define(['underscore'], function (_) {
                         }
                         return div(attribs, tab.content);
                     })
-                )
+                    )
             ]);
         }
 

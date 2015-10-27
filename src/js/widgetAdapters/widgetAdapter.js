@@ -7,16 +7,25 @@
  */
 define([
     'promise',
-    'underscore',
+    'jquery',
+    'kb_common_utils',
     'kb_common_html',
     'kb_common_dom'
-], function (Promise, _, html, dom) {
+], function (Promise, $, Utils, html, dom) {
     'use strict';
     
         function adapter(config) {
             var widget, mount, container, initConfig, 
-                runtime = config.runtime,
-                module = config.module;
+                runtime = config.adapterConfig.runtime,
+                module = config.widgetDef.module;
+            
+            if (!runtime) {
+                throw {
+                    type: 'ArgumentError',
+                    reason: 'RuntimeMissing',
+                    message: 'The runtime factory construction property is required but not provided'
+                };
+            }
 
             function init(cfg) {
                 return new Promise(function (resolve) {
@@ -27,7 +36,8 @@ define([
                         // NB we save the config, because the internal widget 
                         // unfortunately requires the container in init, and 
                         // that is not available until attach...
-                        initConfig = cfg || {};
+                        initConfig = Utils.shallowMerge({}, config.initConfig);
+                        Utils.merge(initConfig, cfg);
                         widget = Object.create(Widget);
                         resolve();
                     });
@@ -50,11 +60,15 @@ define([
                     // not need a connector!
                     // not the best .. perhaps merge the params into the config
                     // better yet, rewrite the widgets in the new model...
-                    var widgetConfig = config.config || params || {};
-                    _.extend(widgetConfig, initConfig);
-                    widgetConfig.container = container;
-                    widgetConfig.userId = runtime.getService('session').getUsername;
-                    widgetConfig.runtme = runtime;
+                    //var widgetConfig = config.widgetDef || params || {};
+                    //_.extend(widgetConfig, initConfig);
+                    
+                    var widgetConfig = Utils.shallowMerge(initConfig, {
+                        container: $(container),
+                        userId: runtime.getService('session').getUsername(),
+                        runtime: runtime,
+                        params: params
+                    });
                     widget.init(widgetConfig);
                     widget.go();
                     

@@ -18,10 +18,13 @@ define([
                 internalApi = {}, externalApi = {},
                 domEvent = fDomEvent.make();
 
-            if (config && config.on) {
-                Object.keys(config.on).forEach(function (hookName) {
-                    addHook(hookName, config.on[hookName]);
-                });
+            if (!runtime) {
+                throw {
+                    type: 'ArgumentError',
+                    reason: 'RuntimeMissing',
+                    blame: 'standardWidget',
+                    message: 'The runtime argument was not provided'
+                };
             }
 
             // The hooks for widget objects.
@@ -77,10 +80,13 @@ define([
             function send(channel, message, data) {
                 runtime.send(channel, message, data);
             }
-            
+
             // DOM EVENTS
             function addDomEvent(type, handler, id, data) {
                 return domEvent.addEvent(type, handler, id, data);
+            }
+            function attachDomEvent(type, handler, selector, data) {
+                return domEvent.attachEvent(type, handler, selector, data);
             }
             function attachDomEvents() {
                 domEvent.attachEvents();
@@ -88,6 +94,22 @@ define([
             function detachDomEvents() {
                 domEvent.detachEvents();
             }
+            
+            // Object construction setup
+            
+            if (config && config.on) {
+                Object.keys(config.on).forEach(function (hookName) {
+                    addHook(hookName, config.on[hookName]);
+                });
+            }
+            
+            if (config && config.events) {
+                config.events.forEach(function (event) {
+                    attachDomEvent(event);
+                })
+            }
+
+
 
             // INTERNAL API
 
@@ -98,45 +120,40 @@ define([
                 setState: setState,
                 get: getState,
                 set: setState,
-                addDomEvent: addDomEvent
+                addDomEvent: addDomEvent,
+                attachDomEvent: attachDomEvent,
+                runtime: runtime
             });
 
 
             // RENDERING
 
             function render() {
-                return Promise.try(function() {
+                return Promise.try(function () {
                     if (!state.isDirty()) {
                         return;
                     }
+                    state.setClean();
                     // For now we assume that rendering blows away dom events
                     // and re-initializes them.
                     // Let us get more subtle later.
                     detachDomEvents();
                     var promises = getHook('render').map(function (fun) {
-                        console.log('rendering:');
                         return Promise.try(fun, [internalApi]);
                     });
                     return Promise.settle(promises)
                         .then(function (results) {
                             // should only be one render result ... 
-                        console.log('rendered: ');
-                        console.log(results.length);
-                      
-                       
                             var result = results[results.length - 1];
                             if (result.isFulfilled()) {
-                                  console.log(results[0].value());
                                 if (result.value()) {
                                     setHtml(result.value());
                                 }
                             } else if (result.isRejected()) {
-                                 console.log(results[0].reason());
                                 setHtml('ERROR: ' + result.reason());
                                 console.log('ERROR');
                                 console.log(result.reason());
                             }
-                            state.setClean();
                         })
                         .then(function () {
                             attachDomEvents();
@@ -174,6 +191,8 @@ define([
             }
             function start(params) {
                 return Promise.try(function () {
+                    // Start the heartbeat listener, which presently just 
+                    // renders.
                     listeners.push(runtime.recv('app', 'heartbeat', function () {
                         render()
                             .then(function () {
@@ -185,21 +204,27 @@ define([
                                 console.log(err);
                             });
                     }));
-                    if (hasHook('start')) {
-                        var promises = getHook('start').map(function (fun) {
-                            return Promise.try(fun, [internalApi, params]);
-                        });
-                        return Promise.settle(promises)
-                            .then(function (results) {                                
-                                results.forEach(function (result) {
-                                    if (result.isRejected()) {
-                                        console.log('ERROR in standardWidget start');
-                                        console.log(result.reason());
-                                    }
-                                });
-                                attachDomEvents();
+                    return Promise.try(function () {
+                        var promises = [];
+                        if (hasHook('initialContent')) {
+                            getHook('initialContent').forEach(function (fun) {
+                                promises.push(
+                                    Promise.try(fun, [internalApi, params])
+                                    .then(function (data) {
+                                        setHtml(data);
+                                    }));
                             });
-                    }
+                        }
+                        if (hasHook('start')) {
+                            getHook('start').forEach(function (fun) {
+                                promises.push(Promise.try(fun, [internalApi, params]));
+                            });
+                        }
+                        return promises;
+                    })
+                    .each(function (item, index, value) {
+                        // what to do? Check value for error and log it.
+                    });
                 });
             }
             function stop() {

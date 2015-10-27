@@ -72,13 +72,23 @@ define([
         }
 
         function makeWidgets() {
-            return Promise.all(widgets.map(function (rec) {
+            return Promise.settle(widgets.map(function (rec) {
                 return rec.widgetMaker;
             }))
                 .then(function (ws) {
                     // now we have the widget instance list.
                     eachArrays([widgets, ws], function (recs) {
-                        recs[0].widget = recs[1];
+                        var res = recs[1];
+                        if (res.isFulfilled()) {                        
+                            recs[0].widget = res.value();
+                             console.log('OK widget created');
+                            console.log(res.value());
+                        } else if (res.isRejected()) {
+                            console.log('ERROR making widget');
+                            console.log(res.reason());
+                            recs[0].widget = null;
+                            recs[0].error = res.reason();
+                        }
                     });
                 });
         }
@@ -121,7 +131,18 @@ define([
                 if (rec.widget && rec.widget.start) {
                     return rec.widget.start(params);
                 }
-            }));
+            }))
+                .then(function (results) {
+                    results.forEach(function (result) {
+                        if (result.isRejected()) {
+                            console.log('START ERROR');
+                            console.log(result.reason());
+                        } else {
+                            console.log('START OK');
+                            console.log(result.value());
+                        }
+                    });
+                });
         }
 
         function run(params) {
@@ -160,7 +181,9 @@ define([
 
         function destroy() {
             return Promise.settle(widgets.map(function (rec) {
-                return rec.widget.destroy();
+                if (rec.widget && rec.widget.destroy) {
+                    return rec.widget.destroy();
+                }
             }));
         }
 

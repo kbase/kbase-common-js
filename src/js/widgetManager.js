@@ -7,10 +7,11 @@
  */
 define([
     'promise',
+    'kb_common_utils',
     'kb_widgetAdapters_objectWidget',
     'kb_widgetAdapters_kbWidget'
 ],
-    function (Promise, widgetAdapter, KBWidgetAdapter) {
+    function (Promise, Utils, widgetAdapter, KBWidgetAdapter) {
         'use strict';
 
         function factory(config) {
@@ -52,8 +53,13 @@ define([
 
             function makeObjectWidget(widget, config) {
                 return Promise.try(function () {
-                    config.config = widget;
-                    return widgetAdapter.make(widget, config);
+                    return widgetAdapter.make({
+                        widgetDef: widget,
+                        initConfig: config,
+                        adapterConfig: {
+                            runtime: runtime
+                        }
+                    });
                 });
             }
 
@@ -73,25 +79,24 @@ define([
             }
 
             function makeWidget(widgetId, config) {
-                config = config || {};
-                console.log('Mmmmaking widget with');
-                console.log(config);
-                config.runtime = runtime;
-                var widget = widgets[widgetId];
-                if (!widget) {
+                var widgetDef = widgets[widgetId];
+                if (!widgetDef) {
                     throw new Error('Widget ' + widgetId + ' not found');
                 }
+                
+                config = config || {};
+                config.runtime = runtime;
 
                 // How we create a widget depends on what type it is.
-                switch (widget.type) {
+                switch (widgetDef.type) {
                     case 'factory':
-                        return makeFactoryWidget(widget, config);
+                        return makeFactoryWidget(widgetDef, config);
                     case 'object':
-                        return makeObjectWidget(widget, config);
+                        return makeObjectWidget(widgetDef, config);
                     case 'kbwidget':
-                        return makeKbWidget(widget, config);
+                        return makeKbWidget(widgetDef, config);
                     default:
-                        throw new Error('Unsupported widget type ' + widget.type);
+                        throw new Error('Unsupported widget type ' + widgetDef.type);
                 }
 
             }

@@ -30,24 +30,33 @@ define([
     
         function adapter(config) {
             var mount, container, $container, runtime = config.runtime;
-            
-            var module = config.module;            
-            var jqueryObjectName = config.jquery_object;
-            var wantPanel = config.panel;
-            var title = config.title;
+            console.log('MAKING ADAPTER WITH');
+            console.log(config);
+            var module = config.widget.module;            
+            var jqueryObjectName = config.widget.jquery_object;
+            var wantPanel = config.widget.panel;
+            var title = config.widget.title;
+            var theWidget;
 
-            function init() {
-                return new Promise(function (resolve) {
+            function init(initConfig) {
+                
+                return new Promise(function (resolve, reject) {
+                    console.log('Y: init ' + module);
+                    console.log(initConfig);
                     require([module], function () {
                         // these are jquery widgets, so they are just added to the
                         // jquery namespace.
                         // TODO: throw error if not found...
+                        console.log('Y: init2')
                         
                         resolve();
+                    }, function (err) {
+                        reject(err);
                     });
                 });
             }
             function attach(node) {
+                console.log('Y: attach')
                 return new Promise(function (resolve, reject) {
                     mount = node;
                     container = document.createElement('div');
@@ -82,9 +91,10 @@ define([
                         // commonly used, but really should remove this.
                         /* TODO: remove default params like this */
                         ws_url: runtime.getConfig('services.workspace.url'),
-                        token: runtime.getService('session').getAuthToken()
+                        token: runtime.getService('session').getAuthToken(),
+                        runtime: runtime
                     });
-                    $container[jqueryObjectName](widgetConfig);
+                    theWidget = $container[jqueryObjectName](widgetConfig);
                     resolve();
                 });
             }
