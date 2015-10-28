@@ -55,10 +55,13 @@ define([
 
         function addWidget(widgetId, config) {
             config = config || {};
-            var widgetMaker = runtime.getService('widget').makeWidget(widgetId, config),
+            var widgetDef = runtime.getService('widget').getWidget(widgetId),
+                widgetMaker = runtime.getService('widget').makeWidget(widgetId, config),
                 id = html.genId(),
                 rec = {
                     id: id,
+                    name: widgetDef.name || widgetDef.id,
+                    title: widgetDef.title,
                     widgetMaker: widgetMaker
                 };
             widgets.push(rec);
@@ -81,8 +84,6 @@ define([
                         var res = recs[1];
                         if (res.isFulfilled()) {                        
                             recs[0].widget = res.value();
-                             console.log('OK widget created');
-                            console.log(res.value());
                         } else if (res.isRejected()) {
                             console.log('ERROR making widget');
                             console.log(res.reason());
@@ -119,7 +120,7 @@ define([
                     throw {
                         type: 'WidgetError',
                         reason: 'MissingAttachmentNode',
-                        message: ' The widget ' + rec.title + ' does not have a valid node at ' + rec.id
+                        message: 'The widget ' + rec.title + ' does not have a valid node at ' + rec.id
                     };
                 }
                 return rec.widget.attach(rec.node);

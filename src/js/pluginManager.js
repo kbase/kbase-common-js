@@ -212,19 +212,25 @@ define([
                 });
             }
             function makePromiseIterator(actions) {
+                var x = 0;
                 return new Promise(function (topResolve, topReject) {
                     function promiseIterator(actions) {
+                        var iter = String(x);
+                        console.log('W: '+ iter);
+                        x += 1;
                         if (actions === undefined || actions.length === 0) {
                             topResolve('DONE');
                         }
                         var next = actions[0],
                             rest = actions.slice(1);
-
+                        console.log('W: ' + iter + ': trying ' + next);
                         Promise.try(function () {
+                            console.log('W: ' + iter + ': trying 2');
                             return new Promise(function (resolve, reject, notify) {
                                 next(resolve, reject, notify);
                             });
                         }).then(function (result) {
+                            console.log('W: ' + iter + ': done');
                             promiseIterator(rest);
                         }).catch(function (err) {
                             topReject(err);
@@ -251,8 +257,10 @@ define([
                 }
                 return new Promise(function (resolve, reject) {
                     require(['yaml!' + pluginLocation.directory + '/config.yml'], function (pluginConfig) {
+                        console.log('W: loading plugin ' + pluginLocation.name);
                         installPlugin(pluginLocation, pluginConfig)
                             .then(function () {
+                                console.log('W: loaded plugin ' + pluginLocation.name);
                                 resolve(pluginLocation);
                             })
                             .catch(function (err) {
@@ -263,6 +271,8 @@ define([
             }
             
             function installPlugins(pluginDefs) {
+                console.log('W: installing plugins: ' + pluginDefs.length);
+                console.log(pluginDefs);
                 var loaders = pluginDefs.map(function (plugin) {
                     return loadPlugin(plugin);
                 });
@@ -280,6 +290,7 @@ define([
             // plugins are in an array of arrays. each top level array is processed
             // strictly in sequential order.
             function installPluginSets(pluginDefs) {
+                console.log('W: installing plugin sets');
                 var loadSets = pluginDefs.map(function (set) {
                     return function (resolve, reject, notify) {
                         installPlugins(set)
@@ -291,6 +302,7 @@ define([
                             });
                     };
                 });
+                console.log('W: installing plugin sets 2');
 
                 return makePromiseIterator(loadSets);
 //                        .then(function (result) {

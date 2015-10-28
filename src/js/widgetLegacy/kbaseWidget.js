@@ -484,7 +484,7 @@ define([
             tag += '</' + tagName + '>';
         }
         return $(tag);
-    }
+    };
 
     $.KBWidget = function (def) {
         def = (def || {});
@@ -504,7 +504,7 @@ define([
             this.$elem = $elem;
             this.options = $.extend(true, {}, def.options, this.constructor.prototype.options);
             return this;
-        }
+        };
 
         if (name) {
             var directName = name;
@@ -527,7 +527,7 @@ define([
                 $w._init = true;
                 $w.trigger('initialized');
                 return $w;
-            }
+            };
 
             widgetRegistry[name] = Widget;
 
@@ -563,7 +563,7 @@ define([
                         setter: accessor,
                         getter: accessor,
                         type: 'rw'
-                    }
+                    };
 
                     if (typeof accessor === 'object') {
 
@@ -612,19 +612,19 @@ define([
                 Widget.prototype[prop] = (function (methodName, method) {
                     var _super = function () {
                         throw "No parent method defined! Play by the rules!";
-                    }
+                    };
                     var _superMethod = function () {
                         throw "No parent method defined! Play by the rules!";
-                    }
+                    };
 
                     if (parent) {
                         var _super = function () {
                             return widgetRegistry[parent].prototype[methodName].apply(this, arguments);
-                        }
+                        };
 
                         var _superMethod = function (superMethodName) {
                             return widgetRegistry[parent].prototype[superMethodName].apply(this, Array.prototype.slice.call(arguments, 1));
-                        }
+                        };
                     }
 
                     return function () {
@@ -639,7 +639,7 @@ define([
                         this._superMethod = _oSuperMethod;
 
                         return retValue;
-                    }
+                    };
                 })(prop, defCopy[prop]);
 
             } else {
@@ -662,7 +662,7 @@ define([
                         function (idx, elem) {
                             $.fn[name].apply($(elem), methodArgs);
                         }
-                    )
+                    );
                     return this;
                 }
 
@@ -732,7 +732,7 @@ define([
         if (name !== undefined) {
             Widget.prototype[name] = function () {
                 return $.fn[name].apply(this.$elem, arguments);
-            }
+            };
 
             return $.fn[name];
         } else {
@@ -811,9 +811,9 @@ define([
                 this._attributes = {};
                 
                 this.runtime = args.runtime;
-                if (!this.runtime) {
-                    throw new Error('The required runtime option was not provided to the widget');
-                }
+//                if (!this.runtime) {
+//                    throw new Error('The required runtime option was not provided to the widget');
+//                }
 
                 var opts = $.extend(true, {}, this.options);
                 this.options = $.extend(true, {}, opts, args);
@@ -847,11 +847,11 @@ define([
                 if (this.options.template) {
                     $.ajax(this.options.template)
                         .done($.proxy(function (res) {
-                            this.templateSuccess.apply(this, arguments)
+                            this.templateSuccess.apply(this, arguments);
                         }, this))
                         .fail($.proxy(function (res) {
-                            this.templateFailure.apply(this, arguments)
-                        }, this))
+                            this.templateFailure.apply(this, arguments);
+                        }, this));
                 }
 
                 return $elem;
@@ -901,7 +901,7 @@ define([
                         triggerValues = {
                             oldValue: oldVal,
                             newValue: newVal
-                        }
+                        };
                         this.trigger(willChangeNote, triggerValues);
 
                         this._attributes[attribute] = triggerValues.newValue;

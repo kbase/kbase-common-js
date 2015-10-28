@@ -1,4 +1,7 @@
-define(['jquery', 'kb.session', 'kb.jquery.widget'], function ($, Session) {
+define([
+    'jquery',
+    'kb_widgetBases_kbWidget'
+], function ($) {
     'use strict';
     $.KBWidget({
         name: "kbaseAuthenticatedWidget",
@@ -19,12 +22,12 @@ define(['jquery', 'kb.session', 'kb.jquery.widget'], function ($, Session) {
             this._super(options);
             // An authenticated widget needs to get the initial auth state
             // from the KBaseSessionSync jquery extension.
-            var sessionObject = Session.getKBaseSession();
-            this.setAuth(sessionObject);
+            // var sessionObject = Session.getKBaseSession();
+            this.setAuth(this.runtime.getService('session').getKbaseSession());
 
             // This is how to pull the value out of the auth attribute.
-            var auth = this.auth();
-            if (this.loggedInQueryCallback && auth && auth.token) {
+            // var auth = this.auth();
+            if (this.loggedInQueryCallback && this.authToken()) {
                 this.callAfterInit(function () {
                     // use the current auth attribute value, since this is run asynchronously, and who knows,
                     // it may have changed.

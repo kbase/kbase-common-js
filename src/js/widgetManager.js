@@ -65,7 +65,7 @@ define([
 
             function makeKbWidget(widget, config) {
                 return Promise.try(function () {
-                    config = {
+                    var adapterConfig = {
                         runtime: runtime,
                         widget: {
                             module: widget.module,
@@ -74,7 +74,7 @@ define([
                             title: widget.title
                         }
                     };
-                    return KBWidgetAdapter.make(config);
+                    return KBWidgetAdapter.make(adapterConfig);
                 });
             }
 
