@@ -110,11 +110,12 @@ define([
             function installIntoService(pluralTypeName, def) {
                 return Promise.try(function () {
                     var typeName;
-                    var m = pluralTypeName.match(/(.*?)(:?(s)|($))$/);
-                    if (!m) {
+                    // weird, perhaps, way to strip off a terminal "s".
+                    var nameMatch = pluralTypeName.match(/(.*?)(:?(s)|($))$/);
+                    if (!nameMatch) {
                         return;
                     }
-                    typeName = m[1];
+                    typeName = nameMatch[1];
                     if (!runtime.hasService(typeName)) {
                         throw {
                             name: 'MissingService',
@@ -199,12 +200,6 @@ define([
                             // Do all of the install steps.
                             Promise.all(installSteps)
                                 .then(function (doneSteps) {
-//                                    doneSteps.forEach(function (step) {
-//                                        if (step.isRejected()) {
-//                                            console.log('install step error for ' + pluginLocation.name);
-//                                            console.log(step.reason());
-//                                        }
-//                                    })
                                     resolve();
                                 })
                                 .catch(function (err) {
