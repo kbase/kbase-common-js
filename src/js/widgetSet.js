@@ -138,9 +138,6 @@ define([
                         if (result.isRejected()) {
                             console.log('START ERROR');
                             console.log(result.reason());
-                        } else {
-                            console.log('START OK');
-                            console.log(result.value());
                         }
                     });
                 });

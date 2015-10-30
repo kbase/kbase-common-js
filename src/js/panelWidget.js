@@ -103,20 +103,6 @@ define([
                     event.node = dom.nodeForId(event.nodeId);
                     event.listener = event.node.addEventListener(event.type, event.handler);
                     eventsAttached.push(event);
-
-                    // $container.on(event.type, event.selector, event.data, event.handler);
-                    /*var fun = function (e) {
-                     console.log('trying...');
-                     console.log(e.target);
-                     console.log(event.selector);
-                     console.log(matches(e.target, event.selector));
-                     if (matches(e.target, event.selector)) {
-                     event.handler();
-                     }
-                     };
-                     event.actualHandler = fun;
-                     $container.get(0).addEventListener(event.type, fun);
-                     */
                 });
                 eventsPendingAttachment = [];
             }
@@ -125,8 +111,6 @@ define([
                     if (event.listener) {
                         event.node.removeEventListener(event.type, event.handler);
                         delete event.listener;
-                        // $container.off(event.type, event.selector);
-                        // $container.get(0).removeEventListener(event.type, event.actualHandler);
                     }
                 });
                 eventsAttached = [];

@@ -51,8 +51,6 @@ define([
                 });
             }
             function attach(node) {
-                console.log('ATTACHING with ');
-                console.log(node);
                 return new Promise(function (resolve, reject) {
                     mount = node;
                     container = document.createElement('div');
@@ -63,10 +61,6 @@ define([
                     } else {
                         $container = $(container);
                     }
-                    
-                    console.log('kb widget adapter testing jquery widget on ');
-                    console.log(container);
-                    console.log(node);
                     
                     if ($container[jqueryObjectName] === undefined) {
                         reject('Sorry, cannot find jquery widget ' + jqueryObjectName);
@@ -94,8 +88,6 @@ define([
                         token: runtime.getService('session').getAuthToken(),
                         runtime: runtime
                     });
-                     console.log('kb widget adapter invoking jquery widget on ');
-                    console.log(container);
                     theWidget = $container[jqueryObjectName](widgetConfig);
                     resolve();
                 });
