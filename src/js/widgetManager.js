@@ -7,11 +7,10 @@
  */
 define([
     'promise',
-    'kb_common_utils',
     'kb_widgetAdapters_objectWidget',
     'kb_widgetAdapters_kbWidget'
 ],
-    function (Promise, Utils, widgetAdapter, KBWidgetAdapter) {
+    function (Promise, widgetAdapter, KBWidgetAdapter) {
         'use strict';
 
         function factory(config) {
@@ -26,11 +25,14 @@ define([
             // API Functions
 
             function addWidget(widgetDef) {
-                if (widgets[widgetDef.id]) {
-                    throw new Error('Widget ' + widgetDef.id + ' is already registered');
+                if (widgetDef.id) {
+                    widgetDef.name = widgetDef.id;
+                }
+                if (widgets[widgetDef.name]) {
+                    throw new Error('Widget ' + widgetDef.name + ' is already registered');
                 }
                 /* TODO:  validate the widget ...*/
-                widgets[widgetDef.id] = widgetDef;
+                widgets[widgetDef.name] = widgetDef;
             }
             function getWidget(widgetId) {
                 return widgets[widgetId];
@@ -40,7 +42,7 @@ define([
                 return new Promise(function (resolve, reject) {
                     require([widget.module], function (factory) {
                         if (factory.make === undefined) {
-                            reject('Factory widget does not have a "make" method: ' + widget.id + ', ' + widget.module);
+                            reject('Factory widget does not have a "make" method: ' + widget.name + ', ' + widget.module);
                         }
                         try {
                             resolve(factory.make(config));
@@ -78,10 +80,10 @@ define([
                 });
             }
 
-            function makeWidget(widgetId, config) {
-                var widgetDef = widgets[widgetId];
+            function makeWidget(widgetName, config) {
+                var widgetDef = widgets[widgetName];
                 if (!widgetDef) {
-                    throw new Error('Widget ' + widgetId + ' not found');
+                    throw new Error('Widget ' + widgetName + ' not found');
                 }
                 
                 config = config || {};

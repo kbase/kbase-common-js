@@ -107,16 +107,23 @@ define([
 //            function addService(type, def) {
 //
 //            }
-            function installIntoService(type, def) {
+            function installIntoService(pluralTypeName, def) {
                 return Promise.try(function () {
-                    if (!runtime.hasService(type)) {
+                    var typeName;
+                    // weird, perhaps, way to strip off a terminal "s".
+                    var nameMatch = pluralTypeName.match(/(.*?)(:?(s)|($))$/);
+                    if (!nameMatch) {
+                        return;
+                    }
+                    typeName = nameMatch[1];
+                    if (!runtime.hasService(typeName)) {
                         throw {
                             name: 'MissingService',
-                            message: 'The requested service "' + type + '" was not registered in the plugin manager',
+                            message: 'The requested service "' + typeName + '" was not registered in the plugin manager',
                             suggestion: 'This is a web app configuration issue, not a user error'
                         };
                     }
-                    var service = runtime.getService(type);
+                    var service = runtime.getService(typeName);
                     if (service.pluginHandler) {
                         return service.pluginHandler(def);
                     }
@@ -137,7 +144,9 @@ define([
                     // of the panel and widgets. widget css code is below...
                     if (pluginDef.source.styles) {
                         pluginDef.source.styles.forEach(function (style) {
-                            dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
+                            if (style.file) {
+                                dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
+                            }
                         });
                     }
 
@@ -191,12 +200,6 @@ define([
                             // Do all of the install steps.
                             Promise.all(installSteps)
                                 .then(function (doneSteps) {
-//                                    doneSteps.forEach(function (step) {
-//                                        if (step.isRejected()) {
-//                                            console.log('install step error for ' + pluginLocation.name);
-//                                            console.log(step.reason());
-//                                        }
-//                                    })
                                     resolve();
                                 })
                                 .catch(function (err) {
@@ -216,21 +219,17 @@ define([
                 return new Promise(function (topResolve, topReject) {
                     function promiseIterator(actions) {
                         var iter = String(x);
-                        console.log('W: '+ iter);
                         x += 1;
                         if (actions === undefined || actions.length === 0) {
                             topResolve('DONE');
                         }
                         var next = actions[0],
                             rest = actions.slice(1);
-                        console.log('W: ' + iter + ': trying ' + next);
                         Promise.try(function () {
-                            console.log('W: ' + iter + ': trying 2');
                             return new Promise(function (resolve, reject, notify) {
                                 next(resolve, reject, notify);
                             });
                         }).then(function (result) {
-                            console.log('W: ' + iter + ': done');
                             promiseIterator(rest);
                         }).catch(function (err) {
                             topReject(err);
@@ -257,10 +256,8 @@ define([
                 }
                 return new Promise(function (resolve, reject) {
                     require(['yaml!' + pluginLocation.directory + '/config.yml'], function (pluginConfig) {
-                        console.log('W: loading plugin ' + pluginLocation.name);
                         installPlugin(pluginLocation, pluginConfig)
                             .then(function () {
-                                console.log('W: loaded plugin ' + pluginLocation.name);
                                 resolve(pluginLocation);
                             })
                             .catch(function (err) {
@@ -271,26 +268,15 @@ define([
             }
             
             function installPlugins(pluginDefs) {
-                console.log('W: installing plugins: ' + pluginDefs.length);
-                console.log(pluginDefs);
                 var loaders = pluginDefs.map(function (plugin) {
                     return loadPlugin(plugin);
                 });
                 return Promise.settle(loaders);
-//                // return new Promise.all(loaders);
-//                
-//                //console.log('x: about to do each to the plugin loaders.');
-//                return Promise.each(loaders, function (loader) {
-//                    // do nothing.
-//                    //console.log('x: loaded plugin');
-//                    //console.log(loader);
-//                });
             }
 
             // plugins are in an array of arrays. each top level array is processed
             // strictly in sequential order.
             function installPluginSets(pluginDefs) {
-                console.log('W: installing plugin sets');
                 var loadSets = pluginDefs.map(function (set) {
                     return function (resolve, reject, notify) {
                         installPlugins(set)
@@ -302,29 +288,8 @@ define([
                             });
                     };
                 });
-                console.log('W: installing plugin sets 2');
 
                 return makePromiseIterator(loadSets);
-//                        .then(function (result) {
-//                            console.log(result);
-//                        })
-//                        .catch(function (err) {
-//                            console.log('ERROR');
-//                            console.log(err);
-//                        });
-
-
-//                var loaders = pluginDefs.map(function (plugin) {
-//                    return loadPlugin(plugin);
-//                });
-//                // return new Promise.all(loaders);
-//                
-//                console.log('x: about to do each to the plugin loaders.');
-//                return Promise.each(loaders, function (loader) {
-//                    // do nothing.
-//                    console.log('x: loaded plugin');
-//                    console.log(loader);
-//                });
             }
 
             return {
