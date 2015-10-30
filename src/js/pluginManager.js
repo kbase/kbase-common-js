@@ -107,16 +107,22 @@ define([
 //            function addService(type, def) {
 //
 //            }
-            function installIntoService(type, def) {
+            function installIntoService(pluralTypeName, def) {
                 return Promise.try(function () {
-                    if (!runtime.hasService(type)) {
+                    var typeName;
+                    var m = pluralTypeName.match(/(.*?)(:?(s)|($))$/);
+                    if (!m) {
+                        return;
+                    }
+                    typeName = m[1];
+                    if (!runtime.hasService(typeName)) {
                         throw {
                             name: 'MissingService',
-                            message: 'The requested service "' + type + '" was not registered in the plugin manager',
+                            message: 'The requested service "' + typeName + '" was not registered in the plugin manager',
                             suggestion: 'This is a web app configuration issue, not a user error'
                         };
                     }
-                    var service = runtime.getService(type);
+                    var service = runtime.getService(typeName);
                     if (service.pluginHandler) {
                         return service.pluginHandler(def);
                     }
