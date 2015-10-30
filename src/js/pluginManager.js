@@ -137,7 +137,9 @@ define([
                     // of the panel and widgets. widget css code is below...
                     if (pluginDef.source.styles) {
                         pluginDef.source.styles.forEach(function (style) {
-                            dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
+                            if (style.file) {
+                                dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
+                            }
                         });
                     }
 
