@@ -393,6 +393,75 @@ define(['underscore'], function (_) {
             return result;
         }
 
+        function makeObjectTable(data, columns) {
+            function columnLabel(column) {
+                var key;
+                if (column.label) {
+                    return column.label;
+                }
+                if (typeof column === 'string') {
+                    key = column;
+                } else {
+                    key = column.key;
+                }
+                return key
+                    .replace(/(id|Id)/g, 'ID')
+                    .split(/_/g).map(function (word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                    .join(' ');
+            }
+            function columnValue(row, column) {
+                var rawValue = row[column.key];
+                if (column.format) {
+                    return column.format(rawValue);
+                }
+                if (column.type) {
+                    switch (column.type) {
+                        case 'bool':
+                            // yuck, use truthiness
+                            if (rawValue) {
+                                return 'True';
+                            }
+                            return 'False';
+                        default:
+                            return rawValue;
+                    }
+                }
+                return rawValue;
+            }
+            
+            if (!columns) {
+                columns = Object.keys(data).map(function (columnName) {
+                    return {
+                        key: columnName
+                    };
+                });
+            } else {
+                columns = columns.map(function (column) {
+                    if (typeof column === 'string') {
+                        return {
+                            key: column
+                        };
+                        return column;
+                    }
+                });
+            }
+
+            var table = tag('table'),
+                tr = tag('tr'),
+                th = tag('th'),
+                td = tag('td'),
+                result = table({class: 'table table-stiped table-bordered'},
+                    columns.map(function (column) {
+                        return tr([
+                            th(columnLabel(column)),
+                            td(columnValue(data, column))
+                        ]);
+                    }));
+            return result;
+        }
+
         function flatten(html) {
             if (_.isString(html)) {
                 return html;
@@ -459,6 +528,7 @@ define(['underscore'], function (_) {
             tag: tag,
             makeTable: makeTable,
             makeRotatedTable: makeRotatedTable,
+            makeObjectTable: makeObjectTable,
             genId: genId,
             bsPanel: bsPanel,
             panel: bsPanel,
