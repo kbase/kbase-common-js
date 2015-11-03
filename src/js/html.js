@@ -340,6 +340,70 @@ define(['underscore'], function (_) {
         /*
          * 
          */
+        function makeTableRotated(arg) {
+            function columnLabel(column) {
+                var key;
+                if (typeof column === 'string') {
+                    key = column;
+                } else {
+                    if (column.label) {
+                        return column.label;
+                    }
+                    key = column.key;
+                }
+                return key
+                    .replace(/(id|Id)/g, 'ID')
+                    .split(/_/g).map(function (word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                    .join(' ');
+            }
+            function formatValue(rawValue, column) {
+                if (typeof column === 'string') {
+                    return rawValue;
+                }
+                if (column.format) {
+                    return column.format(rawValue);
+                }
+                if (column.type) {
+                    switch (column.type) {
+                        case 'bool':
+                            // yuck, use truthiness
+                            if (rawValue) {
+                                return 'True';
+                            }
+                            return 'False';
+                        default:
+                            return rawValue;
+                    }
+                }
+                return rawValue;
+            }
+
+            var table = tag('table'),
+                tr = tag('tr'),
+                th = tag('th'),
+                td = tag('td'),
+                id = genId(),
+                attribs = {id: id};
+            if (arg.class) {
+                attribs.class = arg.class;
+            } else if (arg.classes) {
+                attribs.class = arg.classes.join(' ');
+            }
+
+            var result = table(attribs,
+                    arg.columns.map(function (column, index) {
+                        return tr([
+                            th(columnLabel(column)),
+                            arg.rows.map(function (row) {
+                                return td(formatValue(row[index], column));
+                            })
+                        ]);
+                    }));
+            return result;
+        }
+
         function makeRotatedTable(data, columns) {
             function columnLabel(column) {
                 var key;
@@ -393,6 +457,75 @@ define(['underscore'], function (_) {
             return result;
         }
 
+        function makeObjectTable(data, columns) {
+            function columnLabel(column) {
+                var key;
+                if (column.label) {
+                    return column.label;
+                }
+                if (typeof column === 'string') {
+                    key = column;
+                } else {
+                    key = column.key;
+                }
+                return key
+                    .replace(/(id|Id)/g, 'ID')
+                    .split(/_/g).map(function (word) {
+                    return word.charAt(0).toUpperCase() + word.slice(1);
+                })
+                    .join(' ');
+            }
+            function columnValue(row, column) {
+                var rawValue = row[column.key];
+                if (column.format) {
+                    return column.format(rawValue);
+                }
+                if (column.type) {
+                    switch (column.type) {
+                        case 'bool':
+                            // yuck, use truthiness
+                            if (rawValue) {
+                                return 'True';
+                            }
+                            return 'False';
+                        default:
+                            return rawValue;
+                    }
+                }
+                return rawValue;
+            }
+
+            if (!columns) {
+                columns = Object.keys(data).map(function (columnName) {
+                    return {
+                        key: columnName
+                    };
+                });
+            } else {
+                columns = columns.map(function (column) {
+                    if (typeof column === 'string') {
+                        return {
+                            key: column
+                        };
+                        return column;
+                    }
+                });
+            }
+
+            var table = tag('table'),
+                tr = tag('tr'),
+                th = tag('th'),
+                td = tag('td'),
+                result = table({class: 'table table-stiped table-bordered'},
+                    columns.map(function (column) {
+                        return tr([
+                            th(columnLabel(column)),
+                            td(columnValue(data, column))
+                        ]);
+                    }));
+            return result;
+        }
+
         function flatten(html) {
             if (_.isString(html)) {
                 return html;
@@ -420,9 +553,17 @@ define(['underscore'], function (_) {
             var ul = tag('ul'),
                 li = tag('li'),
                 a = tag('a'),
-                div = tag('div');
+                div = tag('div'),
+                tabsId = arg.id,
+                tabsAttribs = {};
 
-            return div([
+            if (tabsId) {
+                tabsAttribs.id = tabsId;
+            }
+            arg.tabs.forEach(function (tab) {
+                tab.id = genId();
+            });
+            return div(tabsAttribs, [
                 ul({class: 'nav nav-tabs', role: 'tablist'},
                     arg.tabs.map(function (tab, index) {
                         var attribs = {
@@ -445,6 +586,9 @@ define(['underscore'], function (_) {
                             class: 'tab-pane',
                             id: tab.id
                         };
+                        if (tab.name) {
+                            attribs['data-name'] = tab.name;
+                        }
                         if (index === 0) {
                             attribs.class += ' active';
                         }
@@ -458,7 +602,9 @@ define(['underscore'], function (_) {
             html: jsonToHTML,
             tag: tag,
             makeTable: makeTable,
+            makeTableRotated: makeTableRotated,
             makeRotatedTable: makeRotatedTable,
+            makeObjectTable: makeObjectTable,
             genId: genId,
             bsPanel: bsPanel,
             panel: bsPanel,
