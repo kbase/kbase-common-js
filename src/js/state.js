@@ -14,6 +14,9 @@ define([
             function get(prop) {
                 return state.getItem(prop);
             }
+            function has(prop) {
+                return state.hasItem(prop);
+            }
             function isDirty() {
                 return dirty;
             }
@@ -23,6 +26,7 @@ define([
             return {
                 set: set,
                 get: get,
+                has: has,
                 isDirty: isDirty,
                 setClean: setClean
             };
