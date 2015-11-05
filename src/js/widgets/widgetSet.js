@@ -75,7 +75,7 @@ define([
         }
 
         function makeWidgets() {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 return rec.widgetMaker;
             }))
                 .then(function (ws) {
@@ -97,7 +97,7 @@ define([
         function init(config) {
             return makeWidgets()
                 .then(function () {
-                    return Promise.settle(widgets.map(function (rec) {
+                    return Promise.reflect(widgets.map(function (rec) {
                         if (rec.widget.init) {
                             return rec.widget.init(config);
                         }
@@ -111,7 +111,7 @@ define([
         }
 
         function attach() {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 // find node by id.
                 if (!rec.node) {
                     rec.node = dom.findById(rec.id);
@@ -128,7 +128,7 @@ define([
         }
 
         function start(params) {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 if (rec.widget && rec.widget.start) {
                     return rec.widget.start(params);
                 }
@@ -144,7 +144,7 @@ define([
         }
 
         function run(params) {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 if (rec.widget && rec.widget.run) {
                     return rec.widget.run(params);
                 }
@@ -157,7 +157,7 @@ define([
         }
 
         function stop() {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 if (rec.widget && rec.widget.stop) {
                     return rec.widget.stop();
                 }
@@ -165,7 +165,7 @@ define([
         }
 
         function detach() {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 if (rec.widget && rec.widget.detach) {
                     return rec.widget.detach();
                 }
@@ -178,7 +178,7 @@ define([
         }
 
         function destroy() {
-            return Promise.settle(widgets.map(function (rec) {
+            return Promise.reflect(widgets.map(function (rec) {
                 if (rec.widget && rec.widget.destroy) {
                     return rec.widget.destroy();
                 }
