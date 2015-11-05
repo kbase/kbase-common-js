@@ -145,7 +145,7 @@ define([
                     var promises = getHook('render').map(function (fun) {
                         return Promise.try(fun, [internalApi]);
                     });
-                    resolve(Promise.reflect(promises)
+                    resolve(Promise.settle(promises)
                         .then(function (results) {
                             // should only be one render result ... 
                             var result = results[results.length - 1],
@@ -176,7 +176,7 @@ define([
                         var promises = getHook('init').map(function (fun) {
                             return Promise.try(fun, [internalApi, config]);
                         });
-                        resolve(Promise.reflect(promises));
+                        resolve(Promise.settle(promises));
                     } else {
                         resolve();
                     }
@@ -205,7 +205,7 @@ define([
                         var promises = getHook('attach').map(function (fun) {
                             return Promise.try(fun, [internalApi, container]);
                         });
-                        resolve(Promise.reflect(promises).
+                        resolve(Promise.settle(promises).
                             then(function () {
                                 attachDomEvents();
                             }));
@@ -258,7 +258,7 @@ define([
                         var promises = getHook('stop').map(function (fun) {
                             return Promise.try(fun, [internalApi]);
                         });
-                        resolve(Promise.reflect(promises));
+                        resolve(Promise.settle(promises));
                     } else {
                         resolve();
                     }
@@ -273,7 +273,7 @@ define([
                         var promises = getHook('detach').map(function (fun) {
                             return Promise.try(fun, [internalApi]);
                         });
-                        resolve(Promise.reflect(promises).
+                        resolve(Promise.settle(promises).
                             then(function () {
                                 detachDomEvents();
                             }));
@@ -288,7 +288,7 @@ define([
                         var promises = getHook('destroy').map(function (fun) {
                             return Promise.try(fun, [internalApi]);
                         });
-                        resolve(Promise.reflect(promises));
+                        resolve(Promise.settle(promises));
                     } else {
                         resolve();
                     }

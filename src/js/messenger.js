@@ -123,9 +123,9 @@ define([
                     });
                 });
                 if (pubDef.propogate) {
-                    return Promise.reflect(ps);
+                    return Promise.settle(ps);
                 } else {
-                    return Promise.reflect(ps).catch(function (err) {
+                    return Promise.settle(ps).catch(function (err) {
                         console.log('messenger send error');
                         console.log(err);
                     });

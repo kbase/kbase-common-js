@@ -271,7 +271,7 @@ define([
                 var loaders = pluginDefs.map(function (plugin) {
                     return loadPlugin(plugin);
                 });
-                return Promise.reflect(loaders);
+                return Promise.settle(loaders);
             }
 
             // plugins are in an array of arrays. each top level array is processed
