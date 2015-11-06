@@ -104,8 +104,9 @@ define([
                                 try {
                                     resolve(subDef.handler(pubDef.data));
                                 } catch (ex) {
-                                    reject({
-                                        name: 'SendError',
+                                    reject(new UIError{
+                                        type: 'RuntimeError',
+                                        reason: 'MessageHandlerError',
                                         message: 'Exception running message ' + messageName + ', sub ' + subId,
                                         data: ex,
                                         suggestion: 'This is an application error, not your fault'
