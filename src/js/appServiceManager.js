@@ -43,31 +43,26 @@ define([
         }
         function startServices() {
             var all = Object.keys(services).map(function (name) {
-                return new Promise(function (resolve, reject) {
+                return Promise.try(function () {
                     var service = services[name].instance;
                     if (!service) {
                         console.log('Warning: no service started for ' + name);
-                        reject('No service started for ' + name);
-                        return;
+                        throw new Error('No service started for ' + name);
                     }
                     if (!service.start) {
                         console.log('Warning: no start method for ' + name);
-                        resolve();
                         return;
                     }
-                    Promise.try(function () {
+                    return Promise.try(function () {
                         return service.start();
                     })
-                        .then(function (result) {
-                            resolve(result);
-                        })
-                        .catch(function (err) {
-                            console.error('Error starting service ' + name);
-                            console.error('err');
-                            reject(err);
-                        });
+                })
+                    .catch(function (err) {
+                        console.error('Error starting service ' + name);
+                        console.error('err');
+                        reject(err);
+                    });
 
-                });
             });
             return Promise.all(all);
         }

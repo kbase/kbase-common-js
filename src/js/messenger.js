@@ -12,7 +12,7 @@ define([
                 listeners = {},
                 subId = 0,
                 queue = asyncQueue.make();
-            
+
             function nextSubId() {
                 subId += 1;
                 return 'sub_' + subId;
@@ -85,7 +85,7 @@ define([
             function send(pubDef) {
                 var channelName = pubDef.chan || pubDef.channel,
                     messageName = pubDef.msg || pubDef.message;
-                
+
                 var channel = channels[channelName];
                 if (!channel) {
                     return emptyPromiseList();
