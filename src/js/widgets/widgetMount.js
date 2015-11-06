@@ -13,10 +13,10 @@ define([
     function (Promise, dom, html) {
         'use strict';
         function factory(config) {
-            var mount, container, mountedWidget, runtime;
+            var mounted, container, mountedWidget, runtime;
 
-            mount = config.node;
-            if (!mount) {
+            mounted = config.node;
+            if (!mounted) {
                 throw new Error('Cannot create widget mount without a parent node. Pass it as "node"');
             }
             runtime = config.runtime;
@@ -24,9 +24,66 @@ define([
                 throw new Error('The widget mounter needs a runtime object in order to find and mount widgets.');
             }
             container = dom.createElement('div');
-            container = mount.appendChild(container);
+            container = mounted.appendChild(container);
             container.id = html.genId();
-
+            
+            function unmount() {
+                return Promise.try(function () {
+                    if (mountedWidget) {
+                        var widget = mountedWidget.widget;
+                        return widget.stop()
+                            .then(function () {
+                                return widget.detach();
+                            })
+                            .then(function () {
+                                if (widget.destroy) {
+                                    return widget.destroy();
+                                }
+                            });
+                    }
+                });
+            }
+            function mount(widgetId, params) {
+                return Promise.try(function () {
+                        return runtime.getService('widget').makeWidget(widgetId, {});
+                    })
+                    .then(function (widget) {
+                        if (widget === undefined) {
+                            throw new Error('Widget could not be created: ' + widgetId);
+                        }
+                        mountedWidget = {
+                            id: html.genId(),
+                            widget: widget,
+                            container: null,
+                            state: 'created'
+                        };
+                        return [widget, Promise.try(function () {
+                            if (widget.init) {
+                                return widget.init();
+                            }
+                        })];
+                    })
+                    .spread(function (widget) {
+                        var c = dom.createElement('div');
+                        c.id = mountedWidget.id;
+                        container.innerHTML = '';
+                        dom.append(container, c);
+                        mountedWidget.container = c;
+                        return [widget, widget.attach(c)];
+                    })
+                    .spread(function (widget) {
+                        return [widget, Promise.try(function () {
+                            if (widget.start) {
+                                return widget.start(params);
+                            }
+                        })];
+                    })
+                    .spread(function (widget) {
+                        if (widget.run) {
+                            return widget.run(params);
+                        }
+                    });
+            }
             function mountWidget(widgetId, params) {
                 // stop the old one
                 // Stop and unmount current widget.
@@ -84,7 +141,9 @@ define([
                     });
             }
             return {
-                mountWidget: mountWidget
+                mountWidget: mountWidget,
+                mount: mount,
+                unmount: unmount
             };
         }
     return {

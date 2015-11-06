@@ -5,8 +5,6 @@ define([
     'kb_common_asyncQueue'
 ],
     function (Promise, asyncQueue) {
-
-
         function factory(config) {
             // Very simple message system.
             var channels = {},
@@ -81,9 +79,7 @@ define([
             // syncronous publication
             // TODO: async version.
             function emptyPromiseList() {
-                return [new Promise(function (resolve) {
-                        resolve();
-                    })];
+                return [Promise.resolve()];
             }
             function send(pubDef) {
                 var channelName = pubDef.chan || pubDef.channel,
@@ -99,7 +95,7 @@ define([
                 }
 
                 var listeners = messageListener.listeners;
-                var ps = listeners.map(function (subDef) {
+                var ps = Promise.all(listeners.map(function (subDef) {
                     return new Promise(function (resolve, reject) {
                         queue.addItem({
                             channel: channelName,
@@ -121,11 +117,13 @@ define([
                             }
                         });
                     });
-                });
+                }).map(function (promise) {
+                    return promise.reflect();
+                }));
                 if (pubDef.propogate) {
-                    return Promise.settle(ps);
+                    return ps;
                 } else {
-                    return Promise.settle(ps).catch(function (err) {
+                    return ps.catch(function (err) {
                         console.log('messenger send error');
                         console.log(err);
                     });
