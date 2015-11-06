@@ -7,7 +7,7 @@ define(
         'jquery',
         'd3',
         'kb_vis_linechart',
-        'kb_vis_rgbColor',
+        'kb_vis_RGBColor',
         'kb_vis_rectangle',
         'kb_vis_point',
         'kb_vis_size',
