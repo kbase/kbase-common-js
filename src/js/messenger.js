@@ -2,9 +2,10 @@
 /*jslint browser:true  vars: true */
 define([
     'bluebird',
-    'kb_common_asyncQueue'
+    'kb_common_asyncQueue',
+    'kb_common_lang'
 ],
-    function (Promise, asyncQueue) {
+    function (Promise, asyncQueue, lang) {
         function factory(config) {
             // Very simple message system.
             var channels = {},
@@ -104,13 +105,13 @@ define([
                                 try {
                                     resolve(subDef.handler(pubDef.data));
                                 } catch (ex) {
-                                    reject(new UIError{
+                                    reject(new lang.UIError({
                                         type: 'RuntimeError',
                                         reason: 'MessageHandlerError',
                                         message: 'Exception running message ' + messageName + ', sub ' + subId,
                                         data: ex,
                                         suggestion: 'This is an application error, not your fault'
-                                    });
+                                    }));
                                 }
                             },
                             onError: function (err) {
