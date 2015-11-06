@@ -12,6 +12,10 @@ define(
         'kb_widgetBases_kbWidget'
     ],
     function ($, d3, Rectangle, Point, Size) {
+
+    'use strict';
+
+    $.KBWidget({
             name: "kbaseVisWidget",
             version: "1.0.0",
             options: {
@@ -1404,4 +1408,5 @@ gxAxis[0][0].parentNode.appendChild(gxAxis[0][0]);
                                                             ? uniqueFunc
                                                             : undefined;
                                                     },
-                                                });
+                                                })
+                                    });

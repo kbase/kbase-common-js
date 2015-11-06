@@ -9,6 +9,10 @@ define([
 ],
     function ($, d3) {
 
+    'use strict';
+
+    $.KBWidget({
+
 	    name: "kbaseScatterplot",
 	  parent: "kbaseVisWidget",
 
@@ -161,4 +165,4 @@ define([
         },
 
 
-    });
+})    });

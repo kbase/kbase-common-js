@@ -9,6 +9,8 @@ define([
 ],
     function ($, d3) {
 
+    'use strict';
+    $.KBWidget({
 	    name: "kbaseLinechart",
 	  parent: "kbaseVisWidget",
 
@@ -398,4 +400,4 @@ define([
         },
 
 
-    });
+})    });
