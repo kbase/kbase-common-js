@@ -101,7 +101,6 @@ define([
                             channel: channelName,
                             message: messageName,
                             onRun: function () {
-                                console.log('queueing message: ' + messageName);
                                 try {
                                     resolve(subDef.handler(pubDef.data));
                                 } catch (ex) {
@@ -121,8 +120,6 @@ define([
                 }).map(function (promise) {
                     return promise.reflect();
                 }));
-                console.log('gathered messages');
-                console.log(ps);
                 if (pubDef.propogate) {
                     return ps;
                 } else {
