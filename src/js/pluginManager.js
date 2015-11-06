@@ -230,7 +230,7 @@ define([
                                 next(resolve, reject, notify);
                             });
                         }).then(function (result) {
-                            promiseIterator(rest);
+                            return promiseIterator(rest);
                         }).catch(function (err) {
                             topReject(err);
                         });
