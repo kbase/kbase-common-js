@@ -245,7 +245,7 @@ define(
                     function(val, idx) {
                     //function (idx, val) {
 
-                        newVal = $.extend(true, {}, val);
+                        var newVal = $.extend(true, {}, val);
                         newVal.data = {};
 
                         newVal.source.startAngle   += $chord.options.startAngle;
