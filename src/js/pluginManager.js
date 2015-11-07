@@ -32,67 +32,7 @@ define([
             function getService(name) {
                 return services[name];
             }
-//
-//            function installMenus(menus) {
-//                if (!menus) {
-//                    return;
-//                }
-//                return menus.map(function (item) {
-//                    return new Promise(function (resolve) {
-//                        Runtime.send('navbar', 'add-menu-item', item);
-//                        resolve();
-//                    });
-//                });
-//            }
-//
-//            function installTypes(types) {
-//                if (!types) {
-//                    return;
-//                }
-//                return types.map(function (typeDef) {
-//                    var type = typeDef.type,
-//                        viewers = typeDef.viewers;
-//                    viewers.forEach(function (viewerDef) {
-//                        return new Promise(function (resolve) {
-//                            Types.addViewer(type, viewerDef);
-//                            resolve();
-//                        });
-//                    });
-//                });
-//            }
-//
-//            function installWidgets(widgets) {
-//                /*
-//                 * 
-//                 */
-//                return [new Promise(function (resolve) {
-//                        if (widgets) {
-//                            widgets.forEach(function (widgetDef) {
-//                                Runtime.addWidget(widgetDef);
-//                            });
-//                        }
-//                        resolve();
-//                    })];
-//            }
-//
-//            function installBoot(cfg) {
-//                return [new Promise(function (resolve) {
-//                        /*
-//                         * Send a message to the app manager to install this widget
-//                         * at the root.
-//                         */
-//                        // just hard code this for now.
-//                        // Runtime.setRootWidget('root');
-//                        //if (cfg.mainWidget) {
-//                        //    Runtime.addWidget({
-////
-//                        //    });
-//                        //}
-//                        //Runtime.setRootWidget(cfg.boot);
-//                        resolve();
-//
-//                    })];
-//            }
+
 
             function arrayExtend(to, from) {
                 if (from) {
@@ -103,10 +43,7 @@ define([
                 return to;
             }
 
-//            var services = {};
-//            function addService(type, def) {
-//
-//            }
+
             function installIntoService(pluralTypeName, def) {
                 return Promise.try(function () {
                     var typeName;
