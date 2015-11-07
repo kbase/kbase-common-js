@@ -31,7 +31,7 @@ define([
 
     function factory(config) {
         var queue = [],
-            queuePauseTime = (config && config.queuePauseItme) || 100,
+            queuePauseTime = (config && config.queuePauseItme) || 0,
             itemId = 0,
             timer;
 
@@ -46,51 +46,30 @@ define([
          * @private
          */
         function processQueue() {
-            var queueToProcess = queue;
-            queue = [];
-            stop();
-            var item = queueToProcess.shift();
-            while (item) {
+            //var queueToProcess = queue;
+            //queue = [];
+            //stop();
+            var item = queue.shift();
+            if (item) {
                 try {
-                    //if (item.channel && item.channel === 'ui') {
-                    //    console.log('processing queue item');
-                    //    console.log(item);
-                    //}
-//                    Promise.try(function () {
-//                        return item.onRun(item);
-//                    })
-//                        .then(function () {
-//                            // item.result = result;
-//                            start();
-//                        })
-//                        .catch(function (err) {
-//                            console.log('Error processing queue item');
-//                            console.log(err);
-//                            start();
-//                            // item.error = err;
-//                        });
-                    try {
-                        item.onRun(item);
-                    } catch (ex) {
-                        console.log('Error processing queue item');
-                        console.log(err);
-                    } finally {
-                        start();
-                    }
-                } catch (exOnRun) {
+                    item.onRun(item);
+                } catch (ex) {
                     if (item.onError) {
                         try {
-                            item.onError(exOnRun);
+                            item.onError(ex);
                         } catch (ignore) {
-                            // console.log('ERROR running onerror');
-                            // console.log(e);
+                            console.log('ERROR running onerror');
+                            console.log(ex);
                         }
+                    } else {
+                        console.log('Error processing queue item');
+                        console.log(ex);
                     }
+                } finally {
+                    start();
                 }
-                item = queueToProcess.shift();
             }
         }
-
 
 
         function start() {
