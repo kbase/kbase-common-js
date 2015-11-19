@@ -549,6 +549,16 @@ define(['underscore'], function (_) {
             return 'Sorry, cannot make a list from that';
         }
 
+        /**
+         * Make a bootsrap tabset:
+         * arg.tabs.id
+         * arg.tabs.label
+         * arg.tabs.name
+         * arg.tabs.content
+         * 
+         * @param {type} arg
+         * @returns {unresolved}
+         */
         function makeTabs(arg) {
             var ul = tag('ul'),
                 li = tag('li'),

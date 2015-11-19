@@ -1,4 +1,9 @@
-define(['kb_common_utils', 'yaml!DEV/config/client.yml'],
+/*global define*/
+/*jslint white: true, browser: true*/
+define([
+    'kb_common_utils',
+    'yaml!DEV/config/client.yml'
+],
     function (Utils, config) {
         'use strict';
         var Config = Object.create({}, {
@@ -12,7 +17,6 @@ define(['kb_common_utils', 'yaml!DEV/config/client.yml'],
                     return this;
                 }
             },
-           
             // CONFIG
             getItem: {
                 value: function (key, defaultValue) {

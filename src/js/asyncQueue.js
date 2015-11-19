@@ -52,7 +52,7 @@ define([
             var item = queue.shift();
             if (item) {
                 try {
-                    item.onRun(item);
+                    item.onRun();
                 } catch (ex) {
                     if (item.onError) {
                         try {
