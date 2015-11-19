@@ -8,8 +8,8 @@
 define([
     'jquery',
     'bluebird',
-    'kb_common_cookie',
-    'kb_common_logger'
+    './cookie',
+    './logger'
 ],
     function ($, Promise, Cookie, Logger) {
         'use strict';
