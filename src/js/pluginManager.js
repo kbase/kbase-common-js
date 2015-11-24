@@ -17,7 +17,7 @@ define([
         function factory(config) {
             var plugins = {},
                 runtime = config.runtime,
-                moduleBase = config.moduleBase | '/modules',
+                moduleBase = config.moduleBase || '/modules',
                 services = {};
 
             /*
