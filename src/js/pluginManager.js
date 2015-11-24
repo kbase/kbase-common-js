@@ -17,6 +17,7 @@ define([
         function factory(config) {
             var plugins = {},
                 runtime = config.runtime,
+                moduleBase = config.moduleBase | '/modules',
                 services = {};
 
             /*
@@ -119,7 +120,9 @@ define([
                     define('kb_plugin_' + pluginDef.package.name, [], function () {
                         return {
                             plugin: {
-                                path: '/' + sourcePath + '/resources'
+                                path: '/' + sourcePath + '/resources',
+                                modulePath: '/' + sourcePath + '/resources',
+                                fullPath: moduleBase + '/' + sourcePath + '/resources'
                             }
                         };
                     });
