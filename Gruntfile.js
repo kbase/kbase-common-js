@@ -4,7 +4,35 @@
  * and open the template in the editor.
  */
 module.exports = function (grunt) {
+    
+    
+    grunt.loadNpmTasks('grunt-contrib-copy');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    
     // Project configuration.
     grunt.initConfig({
+        pkg: grunt.file.readJSON('package.json'),
+        copy: {
+            build: {
+                files: [
+                    {
+                        cwd: 'src/js',
+                        src: '**/*',
+                        dest: 'dist/kb/common',
+                        expand: true
+                    }
+                ]
+            }
+        },
+        clean: {
+            build: {
+                src: 'dist'
+            }
+        }
     });
+    
+    grunt.registerTask('build', [        
+        'copy:build'
+    ]);
+    
 };
