@@ -19,7 +19,7 @@ define([
                 if (!moduleName) {
                     moduleName = 'kb_appServices_' + name;
                     var paths = {},
-                        path = services[name].config.path || 'js/services/' + name;
+                        path = services[name].config.path || 'app/services/' + name;
                     paths[moduleName] = path;
                     require.config({
                         paths: paths

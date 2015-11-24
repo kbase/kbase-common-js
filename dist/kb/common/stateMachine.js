@@ -33,7 +33,7 @@
  * @typedef {(object|string|number|boolean|undefined|function)} Any
  */
 
-define(['kb_common_utils', 'kb_common_asyncqueue', 'bluebird'], function (Utils, AsyncQueue, Promise) {
+define(['./utils', './asyncQueue', 'bluebird'], function (Utils, AsyncQueue, Promise) {
     "use strict";
     var StateMachine = Object.create({}, {
         /**
