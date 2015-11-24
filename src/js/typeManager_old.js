@@ -20,7 +20,7 @@ define([
                     type: 'fontAwesome',
                     classes: ['fa-file-o']
                 };
-
+           
 
             function getIcon(arg) {
                 var icon = types.getItem(['types', arg.type.module, arg.type.name, 'icon']) || defaultIcon,
@@ -52,88 +52,45 @@ define([
                     return {
                         classes: classes,
                         type: icon.type,
-                        color: getColor(arg.type),
                         html: '<span class="' + classes.join(' ') + '"></span>'
                     };
                 }
             }
-
-            function getColor(type) {
-                var code = 0, i,
-                    colors = [
-                        "#F44336",
-                        "#E91E63",
-                        "#9C27B0",
-                        "#3F51B5",
-                        "#2196F3",
-                        "#673AB7",
-                        "#FFC107",
-                        "#0277BD",
-                        "#00BCD4",
-                        "#009688",
-                        "#4CAF50",
-                        "#33691E",
-                        "#2E7D32",
-                        "#AEEA00",
-                        "#03A9F4",
-                        "#FF9800",
-                        "#FF5722",
-                        "#795548",
-                        "#006064",
-                        "#607D8B"
-                    ], color;
-
-                for (i = 0; i < type.name.length; i += 1) {
-                    code += type.name.charCodeAt(i);
-                }
-                color = colors[code % colors.length];
-                return color;
-            }
-
-            function hasType(typeQuery) {
-                if (types.hasItem(['types', typeQuery.module, typeQuery.name])) {
-                    return true;
-                }
-                return false;
-            }
             function getViewer(arg) {
-//                if (!types.hasItem(['types', arg.type.module, arg.type.name])) {
-//                    throw {
-//                        type: 'ArgumentError',
-//                        reason: 'TypeNotRegistered',
-//                        message: 'The type identified by module ' + arg.type.module + ', name ' + arg.type.name + ' is not registered'
-//                    };
-//                }
-//                if (!types.hasItem(['types', arg.type.module, arg.type.name, 'viewers'])) {
-//                    throw {
-//                        type: 'ArgumentError',
-//                        reason: 'NoViewersFound',
-//                        message: 'No viewers registered for the type identified by module ' + arg.type.module + ', name ' + arg.type.name + '.'
-//                    };
-//                }
-                var viewers = types.getItem(['types', arg.type.module, arg.type.name, 'viewers']);
-                if (!viewers) {
-                    return;
+                if (!types.hasItem(['types', arg.type.module, arg.type.name])) {
+                    throw {
+                        type: 'ArgumentError',
+                        reason: 'TypeNotRegistered',
+                        message: 'The type identified by module ' + arg.type.module + ', name ' + arg.type.name + ' is not registered'
+                    };
                 }
+                if (!types.hasItem(['types', arg.type.module, arg.type.name, 'viewers'])) {
+                    throw {
+                        type: 'ArgumentError',
+                        reason: 'NoViewersFound',
+                        message: 'No viewers registered for the type identified by module ' + arg.type.module + ', name ' + arg.type.name + '.'
+                    };
+                }
+                var viewers = types.getItem(['types', arg.type.module, arg.type.name, 'viewers']);
                 if (viewers.length === 1) {
                     return viewers[0];
-                }
-                var defaults = viewers.filter(function (viewer) {
-                    if (viewer.default) {
-                        return true;
+                } else {
+                    var defaults = viewers.filter(function (viewer) {
+                        if (viewer.default) {
+                            return true;
+                        }
+                        return false;
+                    });
+                    if (defaults.length === 1) {
+                        var copy = _.extend({}, defaults[0]);
+                        delete copy.default;
+                        return copy;
+                    } else if (defaults.length === 0) {
+                        throw new Error('No viewer defined for this type');
+                    } else {
+                        throw new Error('Multiple default viewers defined for this widget');
                     }
-                    return false;
-                });
-                if (defaults.length === 1) {
-                    var copy = _.extend({}, defaults[0]);
-                    delete copy.default;
-                    return copy;
                 }
-                if (defaults.length === 0) {
-                    // throw new Error('No viewer defined for this type');
-                    return;
-                }
-                throw new Error('Multiple default viewers defined for this widget');
             }
 
             /**
@@ -254,8 +211,7 @@ define([
                 parseTypeId: parseTypeId,
                 makeType: makeType,
                 makeVersion: makeVersion,
-                addViewer: addViewer,
-                hasType: hasType
+                addViewer: addViewer
             };
         }
 
@@ -263,5 +219,5 @@ define([
             make: function (config) {
                 return factory(config);
             }
-        };
+        }
     });
