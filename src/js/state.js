@@ -1,5 +1,5 @@
 define([
-    'kb_common_props'
+    './props'
 ],
     function (Props) {
         'use strict';

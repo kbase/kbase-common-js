@@ -7,7 +7,7 @@
  */
 define([
     'underscore',
-    'kb_common_props'
+    './props'
 ],
     function (_, props) {
         'use strict';

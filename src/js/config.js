@@ -1,7 +1,7 @@
 /*global define*/
 /*jslint white: true, browser: true*/
 define([
-    'kb_common_utils',
+    './utils',
     'yaml!DEV/config/client.yml'
 ],
     function (Utils, config) {

@@ -2,8 +2,8 @@
 /*jslint browser:true  vars: true */
 define([
     'bluebird',
-    'kb_common_asyncQueue',
-    'kb_common_lang'
+    './asyncQueue',
+    './lang'
 ],
     function (Promise, asyncQueue, lang) {
         function factory(config) {
@@ -99,8 +99,6 @@ define([
                 var ps = Promise.all(listeners.map(function (subDef) {
                     return new Promise(function (resolve, reject) {
                         queue.addItem({
-                            channel: channelName,
-                            message: messageName,
                             onRun: function () {
                                 try {
                                     resolve(subDef.handler(pubDef.data));

@@ -34,8 +34,8 @@
  */
 
 define([
-    'kb_common_utils', 
-    'kb_common_asyncQueue', 
+    './utils', 
+    './asyncQueue', 
     'bluebird'
 ], function (Utils, fAsyncQueue, Promise) {
     "use strict";
