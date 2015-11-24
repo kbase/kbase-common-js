@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "main": "path/to/main.css",
   "ignore": [
-    ".jshintrc",
-    "**/*.txt"
+    "/src",
+    "/tests",
+    "Gruntfile.js",
+    "package.json"
   ],
   "dependencies": {
     "bluebird": "^3.0.0",
