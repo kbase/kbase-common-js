@@ -88,6 +88,49 @@ define([
 
                 var channel = channels[channelName];
                 if (!channel) {
+                    return;
+                }
+                var messageListener = channel.messages[messageName];
+                if (!messageListener) {
+                    return;
+                }
+
+                var listeners = messageListener.listeners;
+                Promise.all(listeners.map(function (subDef) {
+                    return new Promise(function (resolve, reject) {
+                        queue.addItem({
+                            onRun: function () {
+                                try {
+                                    resolve(subDef.handler(pubDef.data));
+                                } catch (ex) {
+                                    reject(new lang.UIError({
+                                        type: 'RuntimeError',
+                                        reason: 'MessageHandlerError',
+                                        message: 'Exception running message ' + messageName + ', sub ' + subId,
+                                        data: ex,
+                                        suggestion: 'This is an application error, not your fault'
+                                    }));
+                                }
+                            },
+                            onError: function (err) {
+                                reject(err);
+                            }
+                        });
+                    });
+                }).map(function (promise) {
+                    return promise.reflect();
+                }))
+                    .catch(function (err) {
+                        console.log('messenger send error');
+                        console.log(err);
+                    });
+            }
+            function sendPromise(pubDef) {
+                var channelName = pubDef.chan || pubDef.channel,
+                    messageName = pubDef.msg || pubDef.message;
+
+                var channel = channels[channelName];
+                if (!channel) {
                     if (pubDef.propogate) {
                         return emptyPromiseList();
                     }
@@ -138,7 +181,8 @@ define([
             return {
                 receive: receive,
                 unreceive: unreceive,
-                send: send
+                send: send,
+                sendPromise: sendPromise
             };
         }
         ;
