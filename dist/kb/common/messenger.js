@@ -88,11 +88,17 @@ define([
 
                 var channel = channels[channelName];
                 if (!channel) {
-                    return emptyPromiseList();
+                    if (pubDef.propogate) {
+                        return emptyPromiseList();
+                    }
+                    return;
                 }
                 var messageListener = channel.messages[messageName];
                 if (!messageListener) {
-                    return emptyPromiseList();
+                    if (pubDef.propogate) {
+                        return emptyPromiseList();
+                    }
+                    return;
                 }
 
                 var listeners = messageListener.listeners;
