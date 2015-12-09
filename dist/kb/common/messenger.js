@@ -134,18 +134,16 @@ define([
                     if (pubDef.propogate) {
                         return emptyPromiseList();
                     }
-                    return;
                 }
                 var messageListener = channel.messages[messageName];
                 if (!messageListener) {
                     if (pubDef.propogate) {
                         return emptyPromiseList();
                     }
-                    return;
                 }
 
                 var listeners = messageListener.listeners;
-                var ps = Promise.all(listeners.map(function (subDef) {
+                return Promise.all(listeners.map(function (subDef) {
                     return new Promise(function (resolve, reject) {
                         queue.addItem({
                             onRun: function () {
@@ -169,14 +167,6 @@ define([
                 }).map(function (promise) {
                     return promise.reflect();
                 }));
-                if (pubDef.propogate) {
-                    return ps;
-                } else {
-                    return ps.catch(function (err) {
-                        console.log('messenger send error');
-                        console.log(err);
-                    });
-                }
             }
             return {
                 receive: receive,
