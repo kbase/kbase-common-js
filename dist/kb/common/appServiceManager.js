@@ -13,7 +13,7 @@ define([
             };
         }
         function loadService(name) {
-            return new Promise(function (resolve, reject) {
+            return new Promise(function (resolve) {
                 var service = services[name],
                     moduleName = service.config.module;
                 if (!moduleName) {
@@ -46,29 +46,29 @@ define([
                 return Promise.try(function () {
                     var service = services[name].instance;
                     if (!service) {
-                        console.log('Warning: no service started for ' + name);
+                        console.warn('Warning: no service started for ' + name);
                         throw new Error('No service started for ' + name);
                     }
                     if (!service.start) {
-                        console.log('Warning: no start method for ' + name);
+                        console.warn('Warning: no start method for ' + name);
                         return;
                     }
                     return Promise.try(function () {
                         return service.start();
-                    })
-                })
-                    .catch(function (err) {
-                        console.error('Error starting service ' + name);
-                        console.error('err');
-                        reject(err);
                     });
+                })
+//                    .catch(function (err) {
+//                        console.error('Error starting service ' + name);
+//                        console.error('err');
+//                        reject(err);
+//                    });
 
             });
             return Promise.all(all);
         }
         function stopServices() {
             var all = Object.keys(services).map(function (name) {
-                return new Promise(function (resolve, reject) {
+                return new Promise(function (resolve) {
                     var service = services[name];
                     if (service && service.instance && service.instance.stop) {
                         return service.instance.stop()

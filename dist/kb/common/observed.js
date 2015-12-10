@@ -283,6 +283,9 @@ define([
                 cfg = {onSet: cfg};
             }
             // If the item is available, provide immediate callback.
+            
+            // TODO: We should probably not have any immediate callback -- 
+            // rather just queue this up.
             var item = Utils.getProp(state, key);
             if (item) {
                 if (cfg.hear) {
@@ -303,6 +306,7 @@ define([
                     }
                 }
             }
+            
             if (listeners[key] === undefined) {
                 listeners[key] = [];
             }

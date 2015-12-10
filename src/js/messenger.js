@@ -95,42 +95,24 @@ define([
                     return;
                 }
 
-                var listeners = messageListener.listeners;
-                Promise.all(
-                    listeners
-                    .map(function (subDef) {
-                        return new Promise(function (resolve, reject) {
-                            queue.addItem({
-                                onRun: function () {
-                                    try {
-                                        resolve(subDef.handler(pubDef.data));
-                                    } catch (ex) {
-                                        reject(new lang.UIError({
-                                            type: 'RuntimeError',
-                                            reason: 'MessageHandlerError',
-                                            message: 'Exception running message ' + messageName + ', sub ' + subId,
-                                            data: ex,
-                                            suggestion: 'This is an application error, not your fault'
-                                        }));
-                                    }
-                                },
-                                onError: function (err) {
-                                    reject(err);
+                messageListener.listeners
+                    .forEach(function (subDef) {
+                        queue.addItem({
+                            onRun: function () {
+                                try {
+                                    subDef.handler(pubDef.data);
+                                } catch (ex) {
+                                    throw new lang.UIError({
+                                        type: 'RuntimeError',
+                                        reason: 'MessageHandlerError',
+                                        message: 'Exception running message ' + messageName + ', sub ' + subId,
+                                        data: ex,
+                                        suggestion: 'This is an application error, not your fault'
+                                    });
                                 }
-                            });
+                            }
                         });
-                    })
-                    .map(function (promise) {
-                        return promise.reflect();
-                    }))
-                        .then(function () {
-                            return null;
-                    })
-                    .catch(function (err) {
-                        // Do something here?
-                        console.log('messenger send error');
-                        console.log(err);
-                    });
+                });
             }
             function sendPromise(pubDef) {
                 var channelName = pubDef.chan || pubDef.channel,
