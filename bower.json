@@ -1,7 +1,6 @@
 {
-  "name": "JsLibrary",
-  "version": "1.0.0",
-  "main": "path/to/main.css",
+  "name": "kbase-common-js",
+  "version": "0.1.1",
   "ignore": [
     "/src",
     "/tests",
@@ -12,7 +11,7 @@
     "bluebird": "^3.0.0",
     "requirejs": "^2.1.20",
     "underscore": "^1.8.3",
-    "jquery": "2.1.4"
+    "jquery": "^2.1.4"
   },
   "devDependencies": {}
 }
