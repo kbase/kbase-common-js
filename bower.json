@@ -1,17 +1,31 @@
 {
-  "name": "kbase-common-js",
-  "version": "0.1.1",
-  "ignore": [
-    "/src",
-    "/tests",
-    "Gruntfile.js",
-    "package.json"
-  ],
-  "dependencies": {
-    "bluebird": "^3.0.0",
-    "requirejs": "^2.1.20",
-    "underscore": "^1.8.3",
-    "jquery": "^2.1.4"
-  },
-  "devDependencies": {}
+    "name": "kbase-common-js",
+    "version": "0.1.1",
+    "description": "Javascript modules useful across KBase javascript projects",
+    "author": [
+        "eapearson@lbl.gov"
+    ],
+    "keywords": [
+        "kbase"
+    ],
+    "moduleType": "amd-library",
+    "dependencies": {
+        "bluebird": "^3.0.0",
+        "requirejs": "^2.1.20",
+        "underscore": "^1.8.3",
+        "jquery": "^2.1.4"
+    },
+    "devDependencies": {},
+    "ignore": [
+        "/src",
+        "/tests",
+        "Gruntfile.js",
+        "package.json",
+        ".gitigore"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/kbase/kbase-common-js"
+    },
+    "license": "SEE LICENSE IN LICENSE.md"
 }

@@ -393,14 +393,14 @@ define(['underscore'], function (_) {
             }
 
             var result = table(attribs,
-                    arg.columns.map(function (column, index) {
-                        return tr([
-                            th(columnLabel(column)),
-                            arg.rows.map(function (row) {
-                                return td(formatValue(row[index], column));
-                            })
-                        ]);
-                    }));
+                arg.columns.map(function (column, index) {
+                    return tr([
+                        th(columnLabel(column)),
+                        arg.rows.map(function (row) {
+                            return td(formatValue(row[index], column));
+                        })
+                    ]);
+                }));
             return result;
         }
 
@@ -455,6 +455,65 @@ define(['underscore'], function (_) {
                     ]);
                 }));
             return result;
+        }
+
+        function properCase(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        function makeObjTable(data, options) {
+            var columns = (options && options.columns) || Object.keys(data[0]).map(function (key) {
+                return {
+                    key: key,
+                    label: properCase(key)
+                };
+            });
+
+            function columnValue(row, column) {
+                var rawValue = row[column.key];
+                if (column.format) {
+                    return column.format(rawValue);
+                }
+                if (column.type) {
+                    switch (column.type) {
+                        case 'bool':
+                            // yuck, use truthiness
+                            if (rawValue) {
+                                return 'True';
+                            }
+                            return 'False';
+                        default:
+                            return rawValue;
+                    }
+                }
+                return rawValue;
+            }
+            var table = tag('table'),
+                tr = tag('tr'),
+                th = tag('th'),
+                td = tag('td');
+            if (options && options.rotated) {
+                console.log('ROTATED');
+                console.log(columns);
+                return table({class: 'table table-stiped table-bordered'},
+                    columns.map(function (column) {
+                        return tr([
+                            th(column.label),
+                            data.map(function (row) {
+                                return td(columnValue(row, column));
+                            })
+                        ]);
+                    }));
+            } else {
+                return table({class: 'table table-stiped table-bordered'},
+                    [tr(columns.map(function (column) {
+                            return th(column.label);
+                        }))].concat(data.map(function (row) {
+                    return tr(columns.map(function (column) {
+                        return td(columnValue(row, column))
+                    }));
+                })));
+            }
         }
 
         function makeObjectTable(data, columns) {
@@ -615,6 +674,7 @@ define(['underscore'], function (_) {
             makeTableRotated: makeTableRotated,
             makeRotatedTable: makeRotatedTable,
             makeObjectTable: makeObjectTable,
+            makeObjTable: makeObjTable,
             genId: genId,
             bsPanel: bsPanel,
             panel: bsPanel,
