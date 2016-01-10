@@ -1,0 +1,9 @@
+## KBase Package Installation 
+---
+# This is a new format for installing bower packages. It addresses the problem
+# of getting the package installed into the host system in a uniform way.
+moduleType: amd
+package:
+    type: namespaced
+    path: dist
+
