@@ -80,31 +80,35 @@ define([
                     // NB these are styles for the plugin as a whole.
                     // TODO: do away with this. the styles should be dependencies
                     // of the panel and widgets. widget css code is below...
-                    if (pluginDef.source.styles) {
-                        pluginDef.source.styles.forEach(function (style) {
-                            if (style.file) {
-                                dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
-                            }
-                        });
-                    }
-
-                    // Add each module defined to the require config paths.
-                    pluginDef.source.modules.forEach(function (source) {
-                        var jsSourceFile = source.file,
-                            matched = jsSourceFile.match(/^(.+?)(?:(?:\.js$)|(?:$))/);
-                        if (matched) {
-                            jsSourceFile = matched[1];
-                            var sourceFile = sourcePath + '/modules/' + jsSourceFile;
-                            paths[source.module] = sourceFile;
-                            // A module may also have an accompanying css file, which will
-                            // be added as a dependency via shims.
-                            if (source.css) {
-                                var styleModule = source.module + '_css';
-                                paths[styleModule] = sourceFile;
-                                shims[source.module] = {deps: ['css!' + styleModule]};
-                            }
+                    if (pluginDef.source) {
+                        if (pluginDef.source.styles) {
+                            pluginDef.source.styles.forEach(function (style) {
+                                if (style.file) {
+                                    dependencies.push('css!' + sourcePath + '/resources/css/' + style.file);
+                                }
+                            });
                         }
-                    });
+
+                        // Add each module defined to the require config paths.
+                        if (pluginDef.source.modules) {
+                            pluginDef.source.modules.forEach(function (source) {
+                                var jsSourceFile = source.file,
+                                    matched = jsSourceFile.match(/^(.+?)(?:(?:\.js$)|(?:$))/);
+                                if (matched) {
+                                    jsSourceFile = matched[1];
+                                    var sourceFile = sourcePath + '/modules/' + jsSourceFile;
+                                    paths[source.module] = sourceFile;
+                                    // A module may also have an accompanying css file, which will
+                                    // be added as a dependency via shims.
+                                    if (source.css) {
+                                        var styleModule = source.module + '_css';
+                                        paths[styleModule] = sourceFile;
+                                        shims[source.module] = {deps: ['css!' + styleModule]};
+                                    }
+                                }
+                            });
+                        }
+                    }
 
                     // This usage of require.config will merge with the existing
                     // require configuration.
