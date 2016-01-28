@@ -153,24 +153,16 @@ define([], function () {
                     }
                 });
             } else {
-                console.log('throwing'); console.log(req);
                 throw new NotFoundException({
                     original: req.original,
                     path: req.path,
                     params: params
                 });
-
-//                return {
-//                    request: req,
-//                    params: {},
-//                    route: notFoundRoute
-//                };
             }
             return foundRoute;
         }
         function findCurrentRoute() {
             var req = getCurrentRequest();
-            console.log('req'); console.log(req);
             return findRoute(req);
         }
 
@@ -196,8 +188,6 @@ define([], function () {
         }
 
         function navigateTo(location) {
-            console.log('navigating to...');
-            console.log(location);
             //if (window.history.pushState) {
             //    window.history.pushState(null, '', '#' + location);
             //} else {
