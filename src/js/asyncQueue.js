@@ -58,12 +58,12 @@ define([
                         try {
                             item.onError(ex);
                         } catch (ignore) {
-                            console.log('ERROR running onerror');
-                            console.log(ex);
+                            console.error('ERROR running onerror');
+                            console.error(ex);
                         }
                     } else {
-                        console.log('Error processing queue item');
-                        console.log(ex);
+                        console.error('Error processing queue item');
+                        console.error(ex);
                     }
                 } finally {
                     start();
