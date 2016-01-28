@@ -34,17 +34,23 @@
  */
 define([], function () {
     'use strict';
+    
+    function NotFoundException(request) {
+        this.name = 'NotFoundException';
+        this.original = request.original;
+        this.path = request.path;
+        this.params = request.params;
+    }
+    NotFoundException.prototype = Object.create(Error.prototype);
+    NotFoundException.prototype.constructor = NotFoundException;    
+    
     function factory(config) {
         // Routing
         var routes = [],
-                defaultRoute = config.defaultRoute,
-                notFoundRoute = config.notFoundRoute;
+                defaultRoute = config.defaultRoute;
 
         if (!defaultRoute) {
             throw new Error('The defaultRoute must be provided');
-        }
-        if (!notFoundRoute) {
-            throw new Error('The notFound route must be provided');
         }
 
         function addRoute(pathSpec) {
@@ -93,6 +99,7 @@ define([], function () {
             }
 
             return {
+                original: hash,
                 path: path,
                 query: query
             };
@@ -146,16 +153,23 @@ define([], function () {
                     }
                 });
             } else {
-                return {
-                    request: req,
-                    params: {},
-                    route: notFoundRoute
-                };
+                throw new NotFoundException({
+                    original: req.original,
+                    path: req.path,
+                    params: params
+                });
+
+//                return {
+//                    request: req,
+//                    params: {},
+//                    route: notFoundRoute
+//                };
             }
             return foundRoute;
         }
         function findCurrentRoute() {
             var req = getCurrentRequest();
+            console.log('req'); console.log(req);
             return findRoute(req);
         }
 
@@ -181,6 +195,8 @@ define([], function () {
         }
 
         function navigateTo(location) {
+            console.log('navigating to...');
+            console.log(location);
             //if (window.history.pushState) {
             //    window.history.pushState(null, '', '#' + location);
             //} else {
@@ -223,6 +239,7 @@ define([], function () {
     }
 
     return {
+        NotFoundException: NotFoundException,
         make: function (config) {
             return factory(config);
         }
