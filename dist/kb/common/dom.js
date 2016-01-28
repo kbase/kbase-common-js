@@ -25,11 +25,19 @@ define([], function () {
     function nodeForId(id) {
         return document.getElementById(id);
     }
-    function qs(selector) {
-        return document.querySelector(selector);
+    function qs(node, selector) {
+        if (selector === undefined) {
+            selector = node;
+            node = document;
+        }
+        return node.querySelector(selector);
     }
-    function qsa(selector) {
-        var result = document.querySelectorAll(selector);
+    function qsa(node, selector) {
+        if (selector === undefined) {
+            selector = node;
+            node = document;
+        }
+        var result = node.querySelectorAll(selector);
         if (result === null) {
             return [];
         }
