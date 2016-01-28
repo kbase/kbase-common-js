@@ -102,6 +102,7 @@ define([
                                 try {
                                     subDef.handler(pubDef.data);
                                 } catch (ex) {
+                                    console.error(ex);
                                     throw new lang.UIError({
                                         type: 'RuntimeError',
                                         reason: 'MessageHandlerError',
@@ -139,6 +140,7 @@ define([
                                 try {
                                     resolve(subDef.handler(pubDef.data));
                                 } catch (ex) {
+                                    console.error(ex);
                                     reject(new lang.UIError({
                                         type: 'RuntimeError',
                                         reason: 'MessageHandlerError',
