@@ -493,8 +493,6 @@ define(['underscore'], function (_) {
                 th = tag('th'),
                 td = tag('td');
             if (options && options.rotated) {
-                console.log('ROTATED');
-                console.log(columns);
                 return table({class: 'table table-stiped table-bordered'},
                     columns.map(function (column) {
                         return tr([

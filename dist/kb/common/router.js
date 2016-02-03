@@ -34,7 +34,7 @@
  */
 define([], function () {
     'use strict';
-    
+
     function NotFoundException(request) {
         this.name = 'NotFoundException';
         this.original = request.original;
@@ -42,12 +42,12 @@ define([], function () {
         this.params = request.params;
     }
     NotFoundException.prototype = Object.create(Error.prototype);
-    NotFoundException.prototype.constructor = NotFoundException;    
-    
+    NotFoundException.prototype.constructor = NotFoundException;
+
     function factory(config) {
         // Routing
         var routes = [],
-                defaultRoute = config.defaultRoute;
+            defaultRoute = config.defaultRoute;
 
         if (!defaultRoute) {
             throw new Error('The defaultRoute must be provided');
@@ -68,7 +68,7 @@ define([], function () {
 
         function parseQueryString(s) {
             var fields = s.split(/[\?\&]/),
-                    params = {};
+                params = {};
             fields.forEach(function (field) {
                 if (field.length > 0) {
                     var pair = field.split('=');
@@ -82,8 +82,8 @@ define([], function () {
 
         function getCurrentRequest() {
             var path = [],
-                    query = {},
-                    hash, pathQuery;
+                query = {},
+                hash, pathQuery;
 
             // The path is (for now) from the hash component.
             if (window.location.hash && window.location.hash.length > 1) {
@@ -93,18 +93,23 @@ define([], function () {
                 if (pathQuery.length === 2) {
                     query = parseQueryString(pathQuery[1]);
                 }
-                path = pathQuery[0].split('/').filter(function (x) {
-                    return (x.length > 0);
-                });
+                path = pathQuery[0].split('/')
+                    .filter(function (pathComponent) {
+                        return (pathComponent.length > 0);
+                    })
+                    .map(function (pathComponent) {
+                        return decodeURIComponent(pathComponent);
+                    });
             }
-
-            return {
+            
+            var req = {
                 original: hash,
                 path: path,
                 query: query
             };
+            
+            return req;
         }
-
 
         function findRoute(req) {
             var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
