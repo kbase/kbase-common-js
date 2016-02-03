@@ -101,14 +101,15 @@ define([], function () {
                         return decodeURIComponent(pathComponent);
                     });
             }
-
-            return {
+            
+            var req = {
                 original: hash,
                 path: path,
                 query: query
             };
+            
+            return req;
         }
-
 
         function findRoute(req) {
             var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
