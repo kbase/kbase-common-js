@@ -5,7 +5,7 @@
  browser: true,
  white: true
  */
-define(['underscore'], function (_) {
+define(['underscore'], function (underscore) {
     'use strict';
     return (function () {
 
@@ -70,20 +70,22 @@ define(['underscore'], function (_) {
         }
         function makeStyleAttribs(attribs) {
             if (attribs) {
-                var fields = Object.keys(attribs).map(function (key) {
-                    var value = attribs[key],
-                        key = camelToHyphen(key);
+                return Object.keys(attribs)
+                    .map(function (rawKey) {
+                        var value = attribs[rawKey],
+                            key = camelToHyphen(rawKey);
 
-                    if (typeof value === 'string') {
-                        return key + ': ' + value;
-                    }
-                    // just ignore invalid attributes for now
-                    // TODO: what is the proper thing to do?
-                    return '';
-                });
-                return fields.filter(function (field) {
-                    return field ? true : false;
-                }).join('; ');
+                        if (typeof value === 'string') {
+                            return key + ': ' + value;
+                        }
+                        // just ignore invalid attributes for now
+                        // TODO: what is the proper thing to do?
+                        return '';
+                    })
+                    .filter(function (field) {
+                        return field ? true : false;
+                    })
+                    .join('; ');
             }
             return '';
         }
@@ -102,22 +104,24 @@ define(['underscore'], function (_) {
          */
         function makeDataBindAttribs(attribs) {
             if (attribs) {
-                var fields = Object.keys(attribs).map(function (key) {
-                    var value = attribs[key];
-                    if (typeof value === 'string') {
-                        //var escapedValue = value.replace(/\"/g, '\\"');
-                        return key + ':' + value;
-                    }
-                    if (typeof value === 'object') {
-                        return key + ': {' + makeDataBindAttribs(value) + '}';
-                    }
-                    // just ignore invalid attributes for now
-                    // TODO: what is the proper thing to do?
-                    return '';
-                });
-                return fields.filter(function (field) {
-                    return field ? true : false;
-                }).join(',');
+                return Object.keys(attribs)
+                    .map(function (key) {
+                        var value = attribs[key];
+                        if (typeof value === 'string') {
+                            //var escapedValue = value.replace(/\"/g, '\\"');
+                            return key + ':' + value;
+                        }
+                        if (typeof value === 'object') {
+                            return key + ': {' + makeDataBindAttribs(value) + '}';
+                        }
+                        // just ignore invalid attributes for now
+                        // TODO: what is the proper thing to do?
+                        return '';
+                    })
+                    .filter(function (field) {
+                        return field ? true : false;
+                    })
+                    .join(',');
             }
             return '';
         }
@@ -132,51 +136,71 @@ define(['underscore'], function (_) {
          * @returns {String}
          */
         function makeTagAttribs(attribs) {
-            var quoteChar = '"';
+            var quoteChar = '"', escapedValue;
             if (attribs) {
-                var fields = Object.keys(attribs).map(function (key) {
-                    var value = attribs[key],
-                        attribName = camelToHyphen(key);
-                    if (typeof value === 'object') {
-                        switch (attribName) {
-                            case 'style':
-                                value = makeStyleAttribs(value);
-                                break;
-                            case 'data-bind':
-                                // reverse the quote char, since data-bind attributes 
-                                // can contain double-quote, which can't itself
-                                // be quoted.
-                                quoteChar = "'";
-                                value = makeDataBindAttribs(value);
-                                break;
+                return Object.keys(attribs)
+                    .map(function (key) {
+                        var value = attribs[key],
+                            attribName = camelToHyphen(key);
+                        // The value may itself be an object, which becomes a special string.
+                        // This applies for "style" and "data-bind", each of which have a 
+                        // structured string value.
+                        // Another special case is an array, useful for space-separated
+                        // attributes, esp. "class".
+                        if (typeof value === 'object') {
+                            if (value === null) {
+                                // null works just like false.
+                                value = false;
+                            } else if (value instanceof Array) {
+                                value = value.join(' ');
+                            } else {
+                                switch (attribName) {
+                                    case 'style':
+                                        value = makeStyleAttribs(value);
+                                        break;
+                                    case 'data-bind':
+                                        // reverse the quote char, since data-bind attributes 
+                                        // can contain double-quote, which can't itself
+                                        // be quoted.
+                                        quoteChar = "'";
+                                        value = makeDataBindAttribs(value);
+                                        break;
+                                    default:
+                                        value = false;
+                                }
+                            }
                         }
-                    }
-                    if (typeof value === 'string') {
-                        var escapedValue = value.replace(new RegExp('\\' + quoteChar, 'g'), '\\' + quoteChar);
-                        return attribName + '=' + quoteChar + escapedValue + quoteChar;
-                    } else if (typeof value === 'boolean') {
-                        if (value) {
-                            return attribName;
+                        if (typeof value === 'string') {
+                            escapedValue = value.replace(new RegExp('\\' + quoteChar, 'g'), '\\' + quoteChar);
+                            return attribName + '=' + quoteChar + escapedValue + quoteChar;
                         }
-                    } else if (typeof value === 'number') {
-                        return attribName + '=' + quoteChar + String(value) + quoteChar;
-                    }
-                    return false;
-                });
-                return fields.filter(function (field) {
-                    return field ? true : false;
-                }).join(' ');
-            } else {
-                return '';
+                        if (typeof value === 'boolean') {
+                            if (value) {
+                                return attribName;
+                            }
+                            return false;
+                        }
+                        if (typeof value === 'number') {
+                            return attribName + '=' + quoteChar + String(value) + quoteChar;
+                        }
+                        return false;
+                    })
+                    .filter(function (field) {
+                        return field ? true : false;
+                    })
+                    .join(' ');
             }
+            return '';
         }
         function renderContent(children) {
             if (children) {
-                if (_.isString(children)) {
+                if (underscore.isString(children)) {
                     return children;
-                } else if (_.isNumber(children)) {
+                }
+                if (underscore.isNumber(children)) {
                     return String(children);
-                } else if (_.isArray(children)) {
+                }
+                if (underscore.isArray(children)) {
                     return children.map(function (item) {
                         return renderContent(item);
                     }).join('');
@@ -187,27 +211,28 @@ define(['underscore'], function (_) {
         }
         function tag(tagName, options) {
             options = options || {};
+            var tagAttribs;
             if (!tags[tagName]) {
                 tags[tagName] = function (attribs, children) {
                     var node = '<' + tagName;
-                    if (_.isArray(attribs)) {
+                    if (underscore.isArray(attribs)) {
                         // skip attribs, just go to children.
                         children = attribs;
-                    } else if (_.isString(attribs)) {
+                    } else if (underscore.isString(attribs)) {
                         // skip attribs, just go to children.
                         children = attribs;
-                    } else if (_.isNull(attribs) || _.isUndefined(attribs)) {
+                    } else if (underscore.isNull(attribs) || underscore.isUndefined(attribs)) {
                         children = '';
-                    } else if (_.isObject(attribs)) {
-                        var tagAttribs = makeTagAttribs(attribs);
+                    } else if (underscore.isObject(attribs)) {
+                        tagAttribs = makeTagAttribs(attribs);
                         if (tagAttribs && tagAttribs.length > 0) {
                             node += ' ' + tagAttribs;
                         }
                     } else if (!attribs) {
                         // Do nothing.
-                    } else if (_.isNumber(attribs)) {
-                        children = '' + attribs;
-                    } else if (_.isBoolean(attribs)) {
+                    } else if (underscore.isNumber(attribs)) {
+                        children = String(attribs);
+                    } else if (underscore.isBoolean(attribs)) {
                         if (attribs) {
                             children = 'true';
                         } else {
@@ -238,8 +263,7 @@ define(['underscore'], function (_) {
                 tbody = tag('tbody'),
                 tr = tag('tr'),
                 th = tag('th'),
-                td = tag('td');
-            var id;
+                td = tag('td'), id;
             options = options || {};
             if (options.id) {
                 id = options.id;
@@ -265,8 +289,7 @@ define(['underscore'], function (_) {
                 tbody = tag('tbody'),
                 tr = tag('tr'),
                 th = tag('th'),
-                td = tag('td');
-            var id;
+                td = tag('td'), id, attribs;
             arg = arg || {};
             if (arg.id) {
                 id = arg.id;
@@ -274,7 +297,7 @@ define(['underscore'], function (_) {
                 id = genId();
                 arg.generated = {id: id};
             }
-            var attribs = {id: id};
+            attribs = {id: id};
             if (arg.class) {
                 attribs.class = arg.class;
             } else if (arg.classes) {
@@ -323,7 +346,6 @@ define(['underscore'], function (_) {
 
         function loading(msg) {
             var span = tag('span'),
-                img = tag('img'),
                 i = tag('i'),
                 prompt;
             if (msg) {
@@ -334,8 +356,6 @@ define(['underscore'], function (_) {
                 i({class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom'})
             ]);
         }
-        // <i class="fa fa-spinner fa-pulse fa-3x fa-fw margin-bottom"></i>
-        // img({src: '/images/ajax-loader.gif'})
 
         /*
          * 
@@ -392,7 +412,7 @@ define(['underscore'], function (_) {
                 attribs.class = arg.classes.join(' ');
             }
 
-            var result = table(attribs,
+            return table(attribs,
                 arg.columns.map(function (column, index) {
                     return tr([
                         th(columnLabel(column)),
@@ -401,7 +421,6 @@ define(['underscore'], function (_) {
                         })
                     ]);
                 }));
-            return result;
         }
 
         function makeRotatedTable(data, columns) {
@@ -446,7 +465,7 @@ define(['underscore'], function (_) {
                 tr = tag('tr'),
                 th = tag('th'),
                 td = tag('td');
-            var result = table({class: 'table table-stiped table-bordered'},
+            return table({class: 'table table-stiped table-bordered'},
                 columns.map(function (column) {
                     return tr([
                         th(columnLabel(column)), data.map(function (row) {
@@ -454,7 +473,6 @@ define(['underscore'], function (_) {
                         })
                     ]);
                 }));
-            return result;
         }
 
         function properCase(string) {
@@ -467,7 +485,11 @@ define(['underscore'], function (_) {
                     key: key,
                     label: properCase(key)
                 };
-            });
+            }),
+                table = tag('table'),
+                tr = tag('tr'),
+                th = tag('th'),
+                td = tag('td');
 
             function columnValue(row, column) {
                 var rawValue = row[column.key];
@@ -488,10 +510,6 @@ define(['underscore'], function (_) {
                 }
                 return rawValue;
             }
-            var table = tag('table'),
-                tr = tag('tr'),
-                th = tag('th'),
-                td = tag('td');
             if (options && options.rotated) {
                 return table({class: 'table table-stiped table-bordered'},
                     columns.map(function (column) {
@@ -502,16 +520,15 @@ define(['underscore'], function (_) {
                             })
                         ]);
                     }));
-            } else {
-                return table({class: 'table table-stiped table-bordered'},
-                    [tr(columns.map(function (column) {
-                            return th(column.label);
-                        }))].concat(data.map(function (row) {
-                    return tr(columns.map(function (column) {
-                        return td(columnValue(row, column))
-                    }));
-                })));
             }
+            return table({class: 'table table-stiped table-bordered'},
+                [tr(columns.map(function (column) {
+                        return th(column.label);
+                    }))].concat(data.map(function (row) {
+                return tr(columns.map(function (column) {
+                    return td(columnValue(row, column));
+                }));
+            })));
         }
 
         function makeObjectTable(data, columns) {
@@ -564,8 +581,8 @@ define(['underscore'], function (_) {
                         return {
                             key: column
                         };
-                        return column;
                     }
+                    return column;
                 });
             }
 
@@ -584,19 +601,19 @@ define(['underscore'], function (_) {
         }
 
         function flatten(html) {
-            if (_.isString(html)) {
+            if (underscore.isString(html)) {
                 return html;
-            } else if (_.isArray(html)) {
+            }
+            if (underscore.isArray(html)) {
                 return html.map(function (h) {
                     return flatten(h);
                 }).join('');
-            } else {
-                throw new Error('Not a valid html representation -- must be string or list');
             }
+            throw new Error('Not a valid html representation -- must be string or list');
         }
 
         function makeList(arg) {
-            if (_.isArray(arg.items)) {
+            if (underscore.isArray(arg.items)) {
                 var ul = tag('ul'),
                     li = tag('li');
                 return ul(arg.items.map(function (item) {
