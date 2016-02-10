@@ -25,8 +25,8 @@ define([
                         paths: paths
                     });
                 } else {
-                    console.log('appServiceManager: have a module already.');
-                    console.log(moduleName);
+                    console.warn('appServiceManager: have a module already.');
+                    console.warn(moduleName);
                 }
                 require([moduleName], function (serviceFactory) {
                     var serviceInstance = serviceFactory.make(services[name].config);
