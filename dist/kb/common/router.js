@@ -153,12 +153,23 @@ define([], function () {
             for (i = 0; i < routes.length; i += 1) {
                 route = routes[i];
                 params = {};
+                
+                // We can use a route which is longer than the path if it has 
+                // optional params at the end.
+                if (route.path.length > req.path.length) {
+                    if (!req.path.slice(route.path.length).every(function (routePathElement) {
+                        return routePathElement.optional;
+                    })) {
+                        continue routeloop;
+                    }
+                } else if (route.path.length < req.path.length) {
+                    continue routeloop;
+                }
+                
+                pathloop:
                 for (j = 0; j < req.path.length; j += 1) {
                     routePathElement = route.path[j];
                     requestPathElement = req.path[j];
-                    if (! (routePathElement && requestPathElement) ) {
-                        continue routeloop;
-                    }
                     switch (routePathElement.type) {
                         case 'literal': 
                             if (routePathElement.value !== requestPathElement) {
