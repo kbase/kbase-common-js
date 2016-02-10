@@ -63,6 +63,34 @@ define([], function () {
             /* TODO: do something on overlapping routes */
             /* TODO: better mapping method for routes. */
             /* still, with a relatively short list of routes, this is far from a performance issue. */
+            
+            // fix up the path. This business is to make it easier to have
+            // compact path specifications.
+            var path = pathSpec.path, fixedPath;
+            if (typeof path === 'string') {
+                path = [path];
+            }
+            pathSpec.path =  path.map(function (pathElement) {
+                if (typeof pathElement === 'string') {
+                    return {
+                        type: 'literal',
+                        value: pathElement
+                    };
+                }
+                if (typeof pathElement === 'object') {
+                    if (pathElement instanceof Array) {
+                        return {
+                            type: 'options',
+                            value: pathElement
+                        };
+                    }
+                    if (!pathElement.type) {
+                        pathElement.type = 'param';
+                    }
+                    return pathElement;
+                }
+                throw new Error('Unsupported route path element');
+            });
             routes.push(pathSpec);
         }
 
@@ -102,17 +130,18 @@ define([], function () {
                     });
             }
             
-            var req = {
+            return {
                 original: hash,
                 path: path,
                 query: query
             };
-            
-            return req;
         }
 
         function findRoute(req) {
-            var foundRoute, i, j, route, params, found, elValue, elType, allowableParams;
+            var foundRoute, i, j, route, params,  
+                requestPathElement, routePathElement,
+                allowableParams;
+            // No route at all? Return the default route.
             if ((req.path.length === 0) && (Object.keys(req.query).length === 0)) {
                 return {
                     request: req,
@@ -120,32 +149,44 @@ define([], function () {
                     route: defaultRoute
                 };
             }
+            routeloop:              
             for (i = 0; i < routes.length; i += 1) {
                 route = routes[i];
-                if (route.path.length !== req.path.length) {
-                    continue;
-                }
                 params = {};
-                found = true;
                 for (j = 0; j < req.path.length; j += 1) {
-                    elValue = route.path[j];
-                    elType = typeof elValue;
-                    if (elType === 'string' && elValue !== req.path[j]) {
-                        found = false;
-                        break;
+                    routePathElement = route.path[j];
+                    requestPathElement = req.path[j];
+                    if (! (routePathElement && requestPathElement) ) {
+                        continue routeloop;
                     }
-                    if (elType === 'object' && elValue.type === 'param') {
-                        params[elValue.name] = req.path[j];
+                    switch (routePathElement.type) {
+                        case 'literal': 
+                            if (routePathElement.value !== requestPathElement) {
+                                continue routeloop;
+                            }
+                            break;
+                        case 'options':
+                             if (!routePathElement.value.some(function (option) {
+                                if (requestPathElement === option) {
+                                    return true;
+                                }
+                            })) {
+                                continue routeloop;
+                            }
+                            break;
+                        case 'param':
+                            params[routePathElement.name] = requestPathElement;
+                            break;
                     }
                 }
-                if (found) {
-                    foundRoute = {
-                        request: req,
-                        params: params,
-                        route: route
-                    };
-                    break;
-                }
+                // First found route wins
+                // TODO: fix this?
+                foundRoute = {
+                    request: req,
+                    params: params,
+                    route: route
+                };
+                break routeloop;
             }
             // The total params is the path params and query params
             if (foundRoute) {
