@@ -8,8 +8,6 @@
  */
 define([
     'bluebird'
-        // 'kb_types',
-        // 'kb.runtime'
 ],
     function (Promise) {
         'use strict';
@@ -30,10 +28,10 @@ define([
                     services[name] = serviceDef;
                 });
             }
+
             function getService(name) {
                 return services[name];
             }
-
 
             function arrayExtend(to, from) {
                 if (from) {
@@ -43,7 +41,6 @@ define([
                 }
                 return to;
             }
-
 
             function installIntoService(pluralTypeName, def) {
                 return Promise.try(function () {
@@ -147,23 +144,19 @@ define([
                                     resolve();
                                 })
                                 .catch(function (err) {
-                                    console.log('ERROR');
-                                    console.log(err);
+                                    console.error(err);
                                     reject(err);
                                 });
                         });
                     } else {
-                        console.log('No installation?');
                         resolve();
                     }
                 });
             }
+            
             function makePromiseIterator(actions) {
-                var x = 0;
                 return new Promise(function (topResolve, topReject) {
                     function promiseIterator(actions) {
-                        var iter = String(x);
-                        x += 1;
                         if (actions === undefined || actions.length === 0) {
                             topResolve('DONE');
                         }
@@ -173,7 +166,7 @@ define([
                             return new Promise(function (resolve, reject, notify) {
                                 next(resolve, reject, notify);
                             });
-                        }).then(function (result) {
+                        }).then(function () {
                             return promiseIterator(rest);
                         }).catch(function (err) {
                             topReject(err);
