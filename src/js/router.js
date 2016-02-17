@@ -261,7 +261,11 @@ define([], function () {
             if (location.params) {
                 loc += '?' + paramsToQuery(location.params);
             }
-            window.location.hash = '#' + loc;
+            if (location.replace) {
+                replacePath('#' + loc);
+            } else {
+                window.location.hash = '#' + loc;
+            }
             //}
         }
         function replacePath(location) {
