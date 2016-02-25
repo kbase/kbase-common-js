@@ -276,12 +276,18 @@ define([
              * @returns {undefined} nothing
              */
             function removeSession() {
-                Cookie.removeItem(cookieName, '/');
-                if (extraCookieNames) {
-                    extraCookieNames.forEach(function (cookieName) {
-                        Cookie.removeItem(cookieName, '/');
-                    });
-                }
+                var cookies = Cookie.readCookies();
+                cookies.forEach(function (cookie) {
+                    Cookie.removeItem(cookie.name, '/');                    
+                    Cookie.removeItem(cookie.name, '/', '.kbase.us');
+                });
+                
+//                Cookie.removeItem(cookieName, '/');
+//                if (extraCookieNames) {
+//                    extraCookieNames.forEach(function (cookieName) {
+//                        Cookie.removeItem(cookieName, '/');
+//                    });
+//                }
                 // Cookie.removeItem(cookieName, '/', 'kbase.us');
                 // Cookie.removeItem(narrCookieName, '/', 'kbase.us');
                 // Remove the localStorage session for compatability.
@@ -309,7 +315,7 @@ define([
                     sessionObject = null;
                 }
             }
-
+            
             /**
              * Extract the cookie from the browser environment, parse it, and 
              * validate it. This is the canonical interface betweek KBase ui
@@ -322,11 +328,36 @@ define([
              * if there is no valid session cookie.
              */
             function importFromCookie() {
-                var sessionCookie = Cookie.getItem(cookieName);
+                var sessionCookies = Cookie.getItems(cookieName), sessionCookie;
 
-                if (!sessionCookie) {
+                if (!sessionCookies || sessionCookies.length === 0) {
                     return null;
                 }
+                if (sessionCookies.length > 1) {
+                    removeSession();
+                    return null;
+                }
+                sessionCookie = sessionCookies[0];
+                
+                // Ensure that we have the extra cookie names as well.
+                var extraCookiesOk = true;
+                extraCookieNames.forEach(function (name) {
+                    var cookies = Cookie.getItems(name);
+                    if (!cookies || cookies.length === 0) {
+                        extraCookiesOk = false;
+                    }
+                    if (sessionCookies.length > 1) {
+                        extraCookiesOk = false;
+                    }
+                    if (cookies[0] !== sessionCookie) {
+                        extraCookiesOk = false;
+                    }
+                });
+                if (!extraCookiesOk) {
+                    removeSession();
+                    return null;
+                }
+                
                 // first pass just break out the string into fields.
                 var session = decodeToken(sessionCookie);
 
