@@ -514,7 +514,7 @@ define(['underscore'], function (underscore) {
         }
 
         function makeObjTable(data, options) {
-            var tableData = (data && data.pop) || [data],
+            var tableData = (data instanceof Array && data) || [data],
                 columns = (options && options.columns) || Object.keys(tableData[0]).map(function (key) {
                 return {
                     key: key,
