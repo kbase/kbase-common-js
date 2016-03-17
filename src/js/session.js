@@ -23,6 +23,7 @@ define([
                 cookieMaxAge = config.cookieMaxAge || 36000,
                 loginUrl = config.loginUrl,
                 sessionObject,
+                cookieManager = Object.create(Cookie).init({doc: document}),
                 error;
 
             // Implementation Methods
@@ -207,10 +208,10 @@ define([
             function setSessionCookie() {
                 if (sessionObject) {
                     var cookieString = makeSessionCookie();
-                    Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');
+                    cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/');
                     if (extraCookieNames) {
                         extraCookieNames.forEach(function (cookieName) {
-                            Cookie.setItem(cookieName, cookieString, cookieMaxAge, '/');                            
+                            cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/');                            
                         });
                     }
                     // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
@@ -276,10 +277,10 @@ define([
              * @returns {undefined} nothing
              */
             function removeSession() {
-                var cookies = Cookie.readCookies();
+                var cookies = cookieManager.getCookies();
                 cookies.forEach(function (cookie) {
-                    Cookie.removeItem(cookie.name, '/');                    
-                    Cookie.removeItem(cookie.name, '/', '.kbase.us');
+                    cookieManager.removeItem(cookie.name, '/');                    
+                    cookieManager.removeItem(cookie.name, '/', '.kbase.us');
                 });
                 
 //                Cookie.removeItem(cookieName, '/');
@@ -328,7 +329,7 @@ define([
              * if there is no valid session cookie.
              */
             function importFromCookie() {
-                var sessionCookies = Cookie.getItems(cookieName), sessionCookie;
+                var sessionCookies = cookieManager.getItems(cookieName), sessionCookie;
 
                 if (!sessionCookies || sessionCookies.length === 0) {
                     return null;
@@ -342,7 +343,7 @@ define([
                 // Ensure that we have the extra cookie names as well.
                 var extraCookiesOk = true;
                 extraCookieNames.forEach(function (name) {
-                    var cookies = Cookie.getItems(name);
+                    var cookies = cookieManager.getItems(name);
                     if (!cookies || cookies.length === 0) {
                         extraCookiesOk = false;
                     }
