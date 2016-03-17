@@ -5,20 +5,14 @@ define([], function () {
     'use strict';
     var Cookie = Object.create({}, {
         init: {
-            value: function () {
-                this.cookies = [];
-                this.importCookies();
+            value: function (options) {
+                this.doc = options.doc || document;
                 return this;
             }
         },
         importCookies: {
             value: function () {
-                this.cookies = this.readCookies();
-            }
-        },
-        readCookies: {
-            value: function () {
-                var cookieString = document.cookie;
+                var cookieString = this.doc.cookie;
                 if (cookieString) {
                     return cookieString.split(';')
                         .map(function (cookie) {
@@ -34,9 +28,15 @@ define([], function () {
                 return [];
             }
         },
+        getCookies: {
+            value: function () {
+                return this.importCookies();
+            }
+        },
         findCookie: {
             value: function (key) {
-                return this.cookies.filter(function (cookie) {
+                var cookies = this.importCookies();
+                return cookies.filter(function (cookie) {
                     if (cookie.name === key) {
                         return true;
                     }
@@ -47,8 +47,7 @@ define([], function () {
             value: function (key) {
                 if (!key) {
                     return null;
-                }
-                this.importCookies();
+                }                
                 var cookie = this.findCookie(key), value;
                 if (cookie.length > 1) {
                     throw new Error('Too many cookies returned, expected 1');
@@ -64,7 +63,6 @@ define([], function () {
                 if (!key) {
                     return null;
                 }
-                this.importCookies();
                 return this.findCookie(key).map(function (cookie) {
                     return cookie.value;
                 });
@@ -103,7 +101,6 @@ define([], function () {
                     secure: bSecure,
                     noEncode: bNoEncode
                 };
-                this.cookies.push(newCookie);
                 this.setCookie(newCookie);
                 return true;
             }
@@ -140,8 +137,7 @@ define([], function () {
                     }).join(';');
                     cookieString = [encodeURIComponent(cookie.name), [encodeURIComponent(cookie.value), propString].join(';')].join('=');                    
                 }
-                document.cookie = cookieString;
-                this.importCookies();
+                this.doc.cookie = cookieString;
             }
         },
         removeItem: {
@@ -153,12 +149,12 @@ define([], function () {
                     path: sPath,
                     expires: '01 Jan 1970 00:00:00 GMT'
                 });
-                this.importCookies();
             }
         },
         hasItem: {
             value: function (key) {
-                if (this.cookies[key]) {
+                var cookies = this.importCookies();
+                if (cookies[key]) {
                     return true;
                 }
                 return false;
@@ -166,9 +162,10 @@ define([], function () {
         },
         keys: {
             value: function () {
-                return Object.keys(this.cookies);
+                var cookies = this.importCookies();
+                return Object.keys(cookies);
             }
         }
     });
-    return Cookie.init();
+    return Cookie;
 });
