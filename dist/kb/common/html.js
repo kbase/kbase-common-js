@@ -209,48 +209,82 @@ define(['underscore'], function (underscore) {
                 return '';
             }
         }
+        function merge(obj1, obj2) {
+            function isObject(x) {
+                if (typeof x === 'object' &&
+                    x !== null &&
+                    !(x instanceof Array)) {
+                    return true;
+                }
+                return false;
+            }
+            function merger(a, b) {
+                Object.keys(b).forEach(function (key) {
+                    if (isObject(a) && isObject(b)) {
+                        a[key] = merger(a[key], b[key]);
+                    }
+                    a[key] = b[key];
+                });
+                return a;
+            }
+            return merger(obj1, obj2);
+        }
         function tag(tagName, options) {
             options = options || {};
             var tagAttribs;
-            if (!tags[tagName]) {
-                tags[tagName] = function (attribs, children) {
-                    var node = '<' + tagName;
-                    if (underscore.isArray(attribs)) {
-                        // skip attribs, just go to children.
-                        children = attribs;
-                    } else if (underscore.isString(attribs)) {
-                        // skip attribs, just go to children.
-                        children = attribs;
-                    } else if (underscore.isNull(attribs) || underscore.isUndefined(attribs)) {
-                        children = '';
-                    } else if (underscore.isObject(attribs)) {
-                        tagAttribs = makeTagAttribs(attribs);
-                        if (tagAttribs && tagAttribs.length > 0) {
-                            node += ' ' + tagAttribs;
-                        }
-                    } else if (!attribs) {
-                        // Do nothing.
-                    } else if (underscore.isNumber(attribs)) {
-                        children = String(attribs);
-                    } else if (underscore.isBoolean(attribs)) {
-                        if (attribs) {
-                            children = 'true';
-                        } else {
-                            children = 'false';
-                        }
-                    } else {
-                        throw 'Cannot make tag ' + tagName + ' from a ' + (typeof attribs);
-                    }
-
-                    node += '>';
-                    if (options.close !== false) {
-                        node += renderContent(children);
-                        node += '</' + tagName + '>';
-                    }
-                    return node;
-                };
+            if (tags[tagName] && !options.ignoreCache) {
+                return tags[tagName]
             }
-            return tags[tagName];
+            var tagFun = function (attribs, children) {
+                var node = '<' + tagName;
+                if (underscore.isArray(attribs)) {
+                    // skip attribs, just go to children.
+                    children = attribs;
+                    attribs = null;
+                } else if (underscore.isString(attribs)) {
+                    // skip attribs, just go to children.
+                    children = attribs;
+                    attribs = null;
+                } else if (underscore.isNull(attribs) || underscore.isUndefined(attribs)) {
+                    if (!children) {
+                        children = '';
+                    }
+                } else if (underscore.isObject(attribs)) {
+                    if (options.attribs) {
+                        attribs = merge(merge({}, options.attribs), attribs);
+                    }
+                } else if (underscore.isNumber(attribs)) {
+                    children = String(attribs);
+                    attribs = null;
+                } else if (underscore.isBoolean(attribs)) {
+                    if (attribs) {
+                        children = 'true';
+                    } else {
+                        children = 'false';
+                    }
+                    attribs = null;
+                } else {
+                    throw 'Cannot make tag ' + tagName + ' from a ' + (typeof attribs);
+                }
+                attribs = attribs || options.attribs;
+                if (attribs) {
+                    tagAttribs = makeTagAttribs(attribs);
+                    if (tagAttribs && tagAttribs.length > 0) {
+                        node += ' ' + tagAttribs;
+                    }
+                }
+
+                node += '>';
+                if (options.close !== false) {
+                    node += renderContent(children);
+                    node += '</' + tagName + '>';
+                }
+                return node;
+            };
+            if (!options.ignoreCache) {
+                tags[tagName] = tagFun;
+            }
+            return tagFun;
         }
         var generatedId = 0;
         function genId() {
@@ -480,12 +514,14 @@ define(['underscore'], function (underscore) {
         }
 
         function makeObjTable(data, options) {
-            var columns = (options && options.columns) || Object.keys(data[0]).map(function (key) {
+            var tableData = (data && data.pop) || [data],
+                columns = (options && options.columns) || Object.keys(tableData[0]).map(function (key) {
                 return {
                     key: key,
                     label: properCase(key)
                 };
             }),
+                classes = (options && options.classes) || ['table-striped', 'table-bordered'],
                 table = tag('table'),
                 tr = tag('tr'),
                 th = tag('th'),
@@ -511,27 +547,27 @@ define(['underscore'], function (underscore) {
                 return rawValue;
             }
             if (options && options.rotated) {
-                return table({class: 'table table-stiped table-bordered'},
+                return table({class: 'table ' + classes.join(' ')},
                     columns.map(function (column) {
                         return tr([
                             th(column.label),
-                            data.map(function (row) {
+                            tableData.map(function (row) {
                                 return td(columnValue(row, column));
                             })
                         ]);
                     }));
             }
-            return table({class: 'table table-stiped table-bordered'},
+            return table({class: 'table ' + classes.join(' ')},
                 [tr(columns.map(function (column) {
                         return th(column.label);
-                    }))].concat(data.map(function (row) {
+                    }))].concat(tableData.map(function (row) {
                 return tr(columns.map(function (column) {
                     return td(columnValue(row, column));
                 }));
             })));
         }
 
-        function makeObjectTable(data, columns) {
+        function makeObjectTable(data, options) {
             function columnLabel(column) {
                 var key;
                 if (column.label) {
@@ -568,7 +604,15 @@ define(['underscore'], function (underscore) {
                 }
                 return rawValue;
             }
-
+            var columns, classes;
+            if (!options) {
+                options = {};
+            } else if (options.columns) {
+                columns = options.columns;
+            } else {
+                columns = options;
+                options = {};
+            }
             if (!columns) {
                 columns = Object.keys(data).map(function (columnName) {
                     return {
@@ -585,12 +629,17 @@ define(['underscore'], function (underscore) {
                     return column;
                 });
             }
+            if (options.classes) {
+                classes = options.classes;
+            } else {
+                classes = ['table-striped', 'table-bordered'];
+            }
 
             var table = tag('table'),
                 tr = tag('tr'),
                 th = tag('th'),
                 td = tag('td'),
-                result = table({class: 'table table-stiped table-bordered'},
+                result = table({class: 'table ' + classes.join(' ')},
                     columns.map(function (column) {
                         return tr([
                             th(columnLabel(column)),
