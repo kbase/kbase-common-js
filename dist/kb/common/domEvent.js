@@ -24,6 +24,17 @@ define([
                 eventsPendingAttachment.push(event);
                 return id;
             }
+            function addEvents(events) {
+                var id = html.genId();
+                events.forEach(function (event) {
+                    eventsPendingAttachment.push({
+                        type: event.type,
+                        selector: '#' + id,
+                        handler: event.handler
+                    });
+                });
+                return id;                
+            }
             function attachEvent(type, handler, selector) {
                 var event;
                 if (typeof type === 'string') {
@@ -37,12 +48,12 @@ define([
                 }
                 eventsPendingAttachment.push(event);
             }
-           
+
             function attachEvents() {
                 eventsPendingAttachment.forEach(function (event) {
                     var nodes = dom.qsa(event.selector);
 
-                   nodes.forEach(function (node) {
+                    nodes.forEach(function (node) {
                         eventsAttached.push({
                             type: event.type,
                             selector: event.selector,
@@ -66,6 +77,7 @@ define([
 
             return Object.freeze({
                 addEvent: addEvent,
+                addEvents: addEvents,
                 attachEvent: attachEvent,
                 attachEvents: attachEvents,
                 detachEvents: detachEvents
