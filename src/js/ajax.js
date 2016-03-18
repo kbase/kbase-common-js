@@ -5,7 +5,6 @@ define([
 ], function (Promise) {
     'use strict';
     function ClientException(code, message, xhr) {
-        this.name = 'ClientException';
         this.code = code;
         this.xhr = xhr;
         this.message = message;
@@ -14,7 +13,6 @@ define([
     ClientException.prototype.constructor = ClientException;
     
     function ServerException(code, message, xhr) {
-        this.name = 'ServerException';
         this.code = code;
         this.xhr = xhr;
         this.message = message;
@@ -23,7 +21,6 @@ define([
     ServerException.prototype.constructor = ServerException;
     
     function TimeoutException(timeout, elapsed, message, xhr) {
-        this.name = 'TimeoutException';
         this.timeout = timeout;
         this.elapsed = elapsed;
         this.xhr = xhr;
@@ -34,7 +31,6 @@ define([
     
      
     function GeneralException(message, xhr) {
-        this.name = 'GeneralException';
         this.xhr = xhr;
         this.message = message;
     }
@@ -42,7 +38,6 @@ define([
     GeneralException.prototype.constructor = GeneralException;
     
     function AbortException(message, xhr) {
-        this.name = 'TimeoutException';
         this.xhr = xhr;
         this.message = message;
     }
