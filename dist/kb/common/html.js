@@ -552,7 +552,7 @@ define(['underscore'], function (underscore) {
                         return tr([
                             th(column.label),
                             tableData.map(function (row) {
-                                return td(columnValue(row, column));
+                                return td({dataElement: column.key}, columnValue(row, column));
                             })
                         ]);
                     }));
@@ -562,7 +562,7 @@ define(['underscore'], function (underscore) {
                         return th(column.label);
                     }))].concat(tableData.map(function (row) {
                 return tr(columns.map(function (column) {
-                    return td(columnValue(row, column));
+                    return td({dataElement: column.key},columnValue(row, column));
                 }));
             })));
         }
