@@ -243,6 +243,51 @@ define([], function () {
                 return key + '=' + encodeURIComponent(params[key]);
             }).join('&');
         }
+        
+        function navigateToPath(location) {
+            var providedPath, normalizedPath, queryString, finalPath;
+            if (typeof location.path === 'string') {
+                providedPath = location.path.split('/');
+            } else if (location.path instanceof Array) {
+                providedPath = location.path;
+            } else {
+                throw new Error('Invalid path in location');
+            }
+            // we eliminate empty path components, like extra slashes, or an initial slash.
+            normalizedPath = providedPath
+                .filter(function (element) {
+                    if (!element || (typeof element !== 'string')) {
+                        return false;
+                    }
+                    return true;
+                })
+                .join('/');
+            if (location.params) {
+                queryString = paramsToQuery(location.params);
+            }
+            if (queryString) {
+                finalPath = normalizedPath + '?' + queryString;
+            } else {
+                finalPath = normalizedPath;
+            }
+            if (location.external) {
+                finalPath = '/' + finalPath;
+                if (location.replace) {
+                    replacePath(finalPath);
+                } else {
+                    // We need to blow away the whole thing, since there will 
+                    // be a hash there.
+                    window.location.href = finalPath;
+                }
+            } else {
+                if (location.replace) {
+                    replacePath('#' + finalPath);
+                } else {
+                    window.location.hash = '#' + finalPath;
+                }
+            }
+        }
+       
 
         function navigateTo(location) {
             //if (window.history.pushState) {
@@ -251,22 +296,11 @@ define([], function () {
             if (typeof location === 'string') {
                 location = {path: location};
             }
-            // path may be an array.
-            var loc;
-            if (location.path.pop) {
-                loc = location.path.join('/');
+            if (location.path !== undefined) {
+                navigateToPath(location);
             } else {
-                loc = location.path;
+                throw new Error('Invalid navigation location -- no path');
             }
-            if (location.params) {
-                loc += '?' + paramsToQuery(location.params);
-            }
-            if (location.replace) {
-                replacePath('#' + loc);
-            } else {
-                window.location.hash = '#' + loc;
-            }
-            //}
         }
         function replacePath(location) {
             window.location.replace(location);
