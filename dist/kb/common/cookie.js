@@ -140,7 +140,6 @@ define([], function () {
                     }).join(';');
                     cookieString = [encodeURIComponent(cookie.name), [encodeURIComponent(cookie.value), propString].join(';')].join('=');                    
                 }
-                console.log('Setting cookie: ', cookieString);
                 this.doc.cookie = cookieString;
             }
         },
