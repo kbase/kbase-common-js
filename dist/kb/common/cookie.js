@@ -78,9 +78,12 @@ define([], function () {
                     switch (vEnd.constructor) {
                         case Number:
                             if (vEnd === Infinity) {
-                                sExpires = 'Fri, 31 Dec 9999 23:59:59 GMT';
+                                sExpires = (new Date('9999-12-31T23:59:59Z')).toUTCString(); 
                             } else {
                                 maxAge = vEnd;
+                                // set both expires and max-age. Max-age because it is more accurate
+                                // and expires because it is more compatible (well, with IE).
+                                sExpires = (new Date((new Date()).getTime() + vEnd*1000)).toUTCString()
                             }
                             break;
                         case String:
@@ -147,7 +150,7 @@ define([], function () {
                     value: '*',
                     domain: sDomain,
                     path: sPath,
-                    expires: '01 Jan 1970 00:00:00 GMT'
+                    expires:  (new Date('1970-01-01T00:00:00Z')).toUTCString()
                 });
             }
         },
