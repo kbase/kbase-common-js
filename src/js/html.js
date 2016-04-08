@@ -5,7 +5,10 @@
  browser: true,
  white: true
  */
-define(['underscore'], function (underscore) {
+define([
+    'underscore',
+    'uuid'
+], function (underscore, uuid) {
     'use strict';
     return (function () {
 
@@ -286,10 +289,8 @@ define(['underscore'], function (underscore) {
             }
             return tagFun;
         }
-        var generatedId = 0;
         function genId() {
-            generatedId += 1;
-            return 'kb_html_' + generatedId;
+            return 'kb_html_' + (new uuid(4)).format();
         }
         function makeTablex(columns, rows, options) {
             var table = tag('table'),
@@ -562,7 +563,7 @@ define(['underscore'], function (underscore) {
                         return th(column.label);
                     }))].concat(tableData.map(function (row) {
                 return tr(columns.map(function (column) {
-                    return td({dataElement: column.key},columnValue(row, column));
+                    return td({dataElement: column.key}, columnValue(row, column));
                 }));
             })));
         }
