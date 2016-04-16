@@ -8,17 +8,16 @@
 define([
     'jquery',
     'bluebird',
-    './cookie',
-    './logger'
+    './cookie'
 ],
-    function ($, Promise, Cookie, Logger) {
+    function ($, Promise, Cookie) {
         'use strict';
 
         function factory(cfg) {
             var version = '0.2.0',
                 config = cfg || {},
                 cookieName = config.cookieName,
-                extraCookieNames = config.extraCookieNames,
+                extraCookieNames = config.extraCookieNames || [],
                 useLocalStorage = config.useLocalStorage,
                 cookieMaxAge = config.cookieMaxAge || 36000,
                 loginUrl = config.loginUrl,
@@ -555,27 +554,32 @@ define([
             }
 
             function isLoggedIn() {
+                refreshSession();
                 if (sessionObject && sessionObject.token) {
                     return true;
                 }
                 return false;
             }
             function getUsername() {
+                refreshSession();
                 if (sessionObject) {
                     return sessionObject.username;
                 }
             }
             function getRealname() {
+                refreshSession();
                 if (sessionObject) {
                     return sessionObject.realname;
                 }
             }
             function getSessionId() {
+                refreshSession();
                 if (sessionObject) {
                     return sessionObject.sessionId;
                 }
             }
             function getAuthToken() {
+                refreshSession();
                 if (sessionObject) {
                     return sessionObject.token;
                 }
