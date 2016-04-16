@@ -8,7 +8,7 @@
 define([
     'underscore',
     'uuid'
-], function (underscore, uuid) {
+], function (underscore, Uuid) {
     'use strict';
     return (function () {
 
@@ -236,7 +236,7 @@ define([
             options = options || {};
             var tagAttribs;
             if (tags[tagName] && !options.ignoreCache) {
-                return tags[tagName]
+                return tags[tagName];
             }
             var tagFun = function (attribs, children) {
                 var node = '<' + tagName;
@@ -290,34 +290,8 @@ define([
             return tagFun;
         }
         function genId() {
-            return 'kb_html_' + (new uuid(4)).format();
+            return 'kb_html_' + (new Uuid(4)).format();
         }
-        function makeTablex(columns, rows, options) {
-            var table = tag('table'),
-                thead = tag('thead'),
-                tbody = tag('tbody'),
-                tr = tag('tr'),
-                th = tag('th'),
-                td = tag('td'), id;
-            options = options || {};
-            if (options.id) {
-                id = options.id;
-            } else {
-                id = genId();
-                options.generated = {id: id};
-            }
-            return table({id: id, class: options.class}, [
-                thead(tr(columns.map(function (x) {
-                    return th(x);
-                }))),
-                tbody(rows.map(function (row) {
-                    return tr(row.map(function (x) {
-                        return td(x);
-                    }));
-                }))
-            ]);
-        }
-
         function makeTable(arg) {
             var table = tag('table'),
                 thead = tag('thead'),
