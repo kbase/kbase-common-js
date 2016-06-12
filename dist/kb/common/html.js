@@ -663,7 +663,8 @@ define([
                 a = tag('a'),
                 div = tag('div'),
                 tabsId = arg.id,
-                tabsAttribs = {};
+                tabsAttribs = {},
+                tabClasses = ['nav', 'nav-tabs'];
 
             if (tabsId) {
                 tabsAttribs.id = tabsId;
@@ -671,8 +672,11 @@ define([
             arg.tabs.forEach(function (tab) {
                 tab.id = genId();
             });
+            if (arg.alignRight) {
+                tabClasses.push('nav-right');
+            }
             return div(tabsAttribs, [
-                ul({class: 'nav nav-tabs', role: 'tablist'},
+                ul({class: tabClasses.join(' '), role: 'tablist'},
                     arg.tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'presentation'
@@ -682,9 +686,9 @@ define([
                         }
                         return li(attribs, a({
                             href: '#' + tab.id,
-                            'aria-controls': 'home',
+                            ariaControls: 'home',
                             role: 'tab',
-                            'data-toggle': 'tab'
+                            dataToggle: 'tab'
                         }, tab.label));
                     })),
                 div({class: 'tab-content'},
