@@ -1,7 +1,7 @@
 /*global define */
 /*jslint white: true */
 define([
-    'promise'
+    'bluebird'
 ], function (Promise) {
     'use strict';
     function ClientException(code, message, xhr) {
