@@ -42,7 +42,7 @@ define([
                 return to;
             }
 
-            function installIntoService(pluralTypeName, def) {
+            function installIntoService(pluralTypeName, def, pluginConfig) {
                 return Promise.try(function () {
                     var typeName;
                     // weird, perhaps, way to strip off a terminal "s".
@@ -60,7 +60,7 @@ define([
                     }
                     var service = runtime.getService(typeName);
                     if (service.pluginHandler) {
-                        return service.pluginHandler(def);
+                        return service.pluginHandler(def, pluginConfig);
                     }
                 });
             }
@@ -71,7 +71,8 @@ define([
                     var paths = {},
                         shims = {},
                         sourcePath = pluginLocation.directory,
-                        dependencies = [];
+                        dependencies = [],
+                        usingSourceModules = false;
 
                     // load any styles.
                     // NB these are styles for the plugin as a whole.
@@ -88,9 +89,12 @@ define([
 
                         // Add each module defined to the require config paths.
                         if (pluginDef.source.modules) {
+                            if (pluginDef.source.modules.length > 0) {
+                                usingSourceModules = true;
+                            }
                             pluginDef.source.modules.forEach(function (source) {
                                 var jsSourceFile = source.file,
-                                    matched = jsSourceFile.match(/^(.+?)(?:(?:\.js$)|(?:$))/);
+                                    matched = jsSourceFile.match(/^([\S\s]+?)(?:(?:\.js$)|(?:$))/);
                                 if (matched) {
                                     jsSourceFile = matched[1];
                                     var sourceFile = sourcePath + '/modules/' + jsSourceFile;
@@ -128,6 +132,11 @@ define([
                         };
                     });
 
+                    var pluginConfig = {
+                        usingSourceModules: usingSourceModules,
+                        moduleRoot: sourcePath + '/modules'
+                    };
+
                     // Now install any routes.
                     if (pluginDef.install) {
                         require(dependencies, function () {
@@ -135,7 +144,7 @@ define([
 
                             Object.keys(pluginDef.install).forEach(function (serviceName) {
                                 var installDef = pluginDef.install[serviceName],
-                                    intallationPromise = installIntoService(serviceName, installDef);
+                                    intallationPromise = installIntoService(serviceName, installDef, pluginConfig);
                                 arrayExtend(installSteps, [intallationPromise]);
                             });
                             // Do all of the install steps.
@@ -153,7 +162,7 @@ define([
                     }
                 });
             }
-            
+
             function makePromiseIterator(actions) {
                 return new Promise(function (topResolve, topReject) {
                     function promiseIterator(actions) {
@@ -203,7 +212,7 @@ define([
                     });
                 });
             }
-            
+
             function installPlugins(pluginDefs) {
                 var loaders = pluginDefs.map(function (plugin) {
                     return loadPlugin(plugin);
