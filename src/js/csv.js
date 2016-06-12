@@ -1,9 +1,9 @@
 /*global define */
 /*jslint white: true */
 define([
-    'promise',
-    'jquery'
-], function (Promise, $) {
+    'bluebird',
+    './ajax'
+], function (Promise, ajax) {
     'use strict';
     function parseCsv(s) {
         // stoopid first pass.
@@ -31,13 +31,16 @@ define([
         return rows;
     }
     function load(path) {
-        return Promise.resolve($.get(path))
+        return ajax.get({
+            url: path
+        })
             .then(function (result) {
                 return parseCsv(result);
-            })
+            });
     }
-    
+
     return {
+        parseCsv: parseCsv,
         load: load
     };
 });
