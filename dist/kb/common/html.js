@@ -658,32 +658,40 @@ define([
          * @returns {unresolved}
          */
         function makeTabs(arg) {
-            var ul = tag('ul'),
+            var tag = html.tag,
+                ul = tag('ul'),
                 li = tag('li'),
                 a = tag('a'),
                 div = tag('div'),
                 tabsId = arg.id,
                 tabsAttribs = {},
-                tabClasses = ['nav', 'nav-tabs'];
+                tabClasses = ['nav', 'nav-tabs'],
+                tabs, tabStyle = {}, activeIndex;
 
             if (tabsId) {
                 tabsAttribs.id = tabsId;
             }
             arg.tabs.forEach(function (tab) {
-                tab.id = genId();
+                tab.id = html.genId();
             });
             if (arg.alignRight) {
-                tabClasses.push('nav-right');
+                tabs = reverse(arg.tabs);
+                tabStyle.float = 'right';
+                activeIndex = tabs.length - 1;
+            } else {
+                tabs = arg.tabs;
+                activeIndex = 0;
             }
             return div(tabsAttribs, [
                 ul({class: tabClasses.join(' '), role: 'tablist'},
-                    arg.tabs.map(function (tab, index) {
+                    tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'presentation'
                         };
-                        if (index === 0) {
+                        if (index === activeIndex) {
                             attribs.class = 'active';
                         }
+                        attribs.style = tabStyle;
                         return li(attribs, a({
                             href: '#' + tab.id,
                             ariaControls: 'home',
