@@ -657,9 +657,16 @@ define([
          * @param {type} arg
          * @returns {unresolved}
          */
+        function reverse(arr) {
+            var newArray = [], i, len = arr.length;
+            for (i = len-1; i >= 0; i -= 1) {
+                newArray.push(arr[i]);
+            }
+            return newArray;
+        }
+        
         function makeTabs(arg) {
-            var tag = html.tag,
-                ul = tag('ul'),
+            var ul = tag('ul'),
                 li = tag('li'),
                 a = tag('a'),
                 div = tag('div'),
@@ -672,7 +679,7 @@ define([
                 tabsAttribs.id = tabsId;
             }
             arg.tabs.forEach(function (tab) {
-                tab.id = html.genId();
+                tab.id = genId();
             });
             if (arg.alignRight) {
                 tabs = reverse(arg.tabs);
