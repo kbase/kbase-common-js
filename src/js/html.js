@@ -657,13 +657,23 @@ define([
          * @param {type} arg
          * @returns {unresolved}
          */
+        function reverse(arr) {
+            var newArray = [], i, len = arr.length;
+            for (i = len-1; i >= 0; i -= 1) {
+                newArray.push(arr[i]);
+            }
+            return newArray;
+        }
+        
         function makeTabs(arg) {
             var ul = tag('ul'),
                 li = tag('li'),
                 a = tag('a'),
                 div = tag('div'),
                 tabsId = arg.id,
-                tabsAttribs = {};
+                tabsAttribs = {},
+                tabClasses = ['nav', 'nav-tabs'],
+                tabs, tabStyle = {}, activeIndex;
 
             if (tabsId) {
                 tabsAttribs.id = tabsId;
@@ -671,20 +681,29 @@ define([
             arg.tabs.forEach(function (tab) {
                 tab.id = genId();
             });
+            if (arg.alignRight) {
+                tabs = reverse(arg.tabs);
+                tabStyle.float = 'right';
+                activeIndex = tabs.length - 1;
+            } else {
+                tabs = arg.tabs;
+                activeIndex = 0;
+            }
             return div(tabsAttribs, [
-                ul({class: 'nav nav-tabs', role: 'tablist'},
-                    arg.tabs.map(function (tab, index) {
+                ul({class: tabClasses.join(' '), role: 'tablist'},
+                    tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'presentation'
                         };
-                        if (index === 0) {
+                        if (index === activeIndex) {
                             attribs.class = 'active';
                         }
+                        attribs.style = tabStyle;
                         return li(attribs, a({
                             href: '#' + tab.id,
-                            'aria-controls': 'home',
+                            ariaControls: 'home',
                             role: 'tab',
-                            'data-toggle': 'tab'
+                            dataToggle: 'tab'
                         }, tab.label));
                     })),
                 div({class: 'tab-content'},
