@@ -96,21 +96,19 @@ define([
                 }
                 return false;
             }
+            
+            function getViewerById(arg) {
+                var viewer = types.getItem(['types', arg.type.module, arg.type.name, 'viewersById', arg.id]);
+                if (!viewer) {
+                    throw new Error('Viewer not found with this id ' + arg.id + ' for ' + arg.type.module + '.' + arg.type.name);
+                }
+                return viewer;
+            }
+            
             function getViewer(arg) {
-//                if (!types.hasItem(['types', arg.type.module, arg.type.name])) {
-//                    throw {
-//                        type: 'ArgumentError',
-//                        reason: 'TypeNotRegistered',
-//                        message: 'The type identified by module ' + arg.type.module + ', name ' + arg.type.name + ' is not registered'
-//                    };
-//                }
-//                if (!types.hasItem(['types', arg.type.module, arg.type.name, 'viewers'])) {
-//                    throw {
-//                        type: 'ArgumentError',
-//                        reason: 'NoViewersFound',
-//                        message: 'No viewers registered for the type identified by module ' + arg.type.module + ', name ' + arg.type.name + '.'
-//                    };
-//                }
+                if (arg.id) {
+                    return getViewerById(arg);
+                }
                 var viewers = types.getItem(['types', arg.type.module, arg.type.name, 'viewers']);
                 if (!viewers || viewers.length === 0) {
                     return;
@@ -242,6 +240,20 @@ define([
 //                    });
 //                }
                 viewers.push(viewerDef);
+                
+                
+                // Also, may register by id
+                if (viewerDef.id) {
+                    var byId = types.getItem(['types', type.module, type.name, 'viewersById']);
+                    if (!byId) {
+                        byId = {};
+                        types.setItem(['types', type.module, type.name, 'viewersById'], byId);
+                    }
+                    if (byId[viewerDef.id]) {
+                        throw new Error('Viewer with this id already registered ' + viewerDef.id);
+                    }
+                    byId[viewerDef.id] = viewerDef;
+                }
             }
             function setDefaultViewer(type, viewerId) {
             }
