@@ -112,7 +112,7 @@ define([
 //                    };
 //                }
                 var viewers = types.getItem(['types', arg.type.module, arg.type.name, 'viewers']);
-                if (!viewers) {
+                if (!viewers || viewers.length === 0) {
                     return;
                 }
                 if (viewers.length === 1) {
@@ -130,10 +130,68 @@ define([
                     return copy;
                 }
                 if (defaults.length === 0) {
+                    // If no default viewer, we will choose the first one 
+                    // loaded. This prevents additional widgets from stomping 
+                    // existing ones without cooperation.
+                    // return viewers[0];
                     // throw new Error('No viewer defined for this type');
-                    return;
+                    // return;
+                    throw new Error('Multiple viewers defined for this type, but none are set as default');
                 }
-                throw new Error('Multiple default viewers defined for this widget');
+                throw new Error('Multiple default viewers defined for this type');
+            }
+
+            function checkViewers() {
+                var modules = types.getItem('types'),
+                    problems = [];
+                Object.keys(modules).forEach(function (moduleName) {
+                    var module = modules[moduleName];
+                    Object.keys(module).forEach(function(typeName) {
+                        var type = module[typeName],
+                            hasDefault = false;
+                            if (!type.viewers) {
+                                problems.push({
+                                    severity: 'warning',
+                                    type: 'no-viewers',
+                                    message: 'A registered type has no viewers: ' + moduleName + '.' + typeName,
+                                    info: {
+                                        module: moduleName,
+                                        type: typeName
+                                    }
+                                });
+                                return;
+                            }
+                            type.viewers.forEach(function (viewer) {
+                                if (viewer.default) {
+                                    if (hasDefault) {
+                                        problems.push({
+                                            severity: 'error',
+                                            type: 'duplicate-default',
+                                            message: 'There is already a default viewer established ' + moduleName + '.' + typeName,
+                                            info: {
+                                                module: moduleName,
+                                                type: typeName
+                                            }
+                                        });
+                                    }
+                                    hasDefault = true;
+                                }
+                            });
+                            if (!hasDefault) {
+                                problems.push({
+                                    severity: 'error',
+                                    type: 'no-default',
+                                    message: 'There is no default viewer for this type: ' + moduleName + '.' + typeName,
+                                    info: {
+                                        module: moduleName,
+                                        type: typeName
+                                    }
+                                });
+                            }
+                    });
+                });
+                
+                return problems;
             }
 
             /**
@@ -178,11 +236,11 @@ define([
                     viewers = [];
                     types.setItem(['types', type.module, type.name, 'viewers'], viewers);
                 }
-                if (viewerDef.default) {
-                    viewers.forEach(function (viewer) {
-                        viewer.default = false;
-                    });
-                }
+//                if (viewerDef.default) {
+//                    viewers.forEach(function (viewer) {
+//                        viewer.default = false;
+//                    });
+//                }
                 viewers.push(viewerDef);
             }
             function setDefaultViewer(type, viewerId) {
@@ -197,7 +255,6 @@ define([
                     types.setItem(['types', type.module, type.name, 'icon'], iconDef);
                 }
             }
-
 
             function getDefault(prop) {
                 return types.getItem(['defaults', prop]);
@@ -245,7 +302,7 @@ define([
                 return type.version.major + '.' + type.version.minor;
             }
 
-            return {
+            return Object.freeze({
                 getIcon: getIcon,
                 setIcon: setIcon,
                 getViewer: getViewer,
@@ -255,8 +312,9 @@ define([
                 makeType: makeType,
                 makeVersion: makeVersion,
                 addViewer: addViewer,
-                hasType: hasType
-            };
+                hasType: hasType,                
+                checkViewers: checkViewers
+            });
         }
 
         return {
