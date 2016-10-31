@@ -468,6 +468,11 @@ define([
                         //options.error('Password is empty: It is required for login');
                         return;
                     }
+                    
+                    // Convert the username to lower case, in case the user typed in 
+                    // upper case letters.
+                    options.username = options.username.toLowerCase();
+                    
 
                     // NB: the cookie param determines whether the auth service will
                     // set a cookie or not. The cookie set only includes un and kbase_sessionid.
