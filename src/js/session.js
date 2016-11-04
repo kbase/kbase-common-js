@@ -17,7 +17,6 @@ define([
             var version = '0.2.0',
                 config = cfg || {},
                 cookieName = config.cookieName,
-                extraCookieNames = config.extraCookieNames || [],
                 useLocalStorage = config.useLocalStorage,
                 cookieMaxAge = config.cookieMaxAge || 36000,
                 loginUrl = config.loginUrl,
@@ -207,12 +206,6 @@ define([
                 if (sessionObject) {
                     var cookieString = makeSessionCookie();
                     cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/');
-                    if (extraCookieNames) {
-                        extraCookieNames.forEach(function (cookieName) {
-                            cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/');
-                        });
-                    }
-                    // Cookie.setItem(narrCookieName, cookieString, cookieMaxAge, '/');
                     var kbaseSession = makeKbaseSession();
                     // This is for compatability with the current state of the narrative ui, which uses this
                     // as a flag for being authenticated.
@@ -281,17 +274,6 @@ define([
                     cookieManager.removeItem(cookie.name, '/', '.kbase.us');
                 });
 
-//                Cookie.removeItem(cookieName, '/');
-//                if (extraCookieNames) {
-//                    extraCookieNames.forEach(function (cookieName) {
-//                        Cookie.removeItem(cookieName, '/');
-//                    });
-//                }
-                // Cookie.removeItem(cookieName, '/', 'kbase.us');
-                // Cookie.removeItem(narrCookieName, '/', 'kbase.us');
-                // Remove the localStorage session for compatability.
-                //localStorage.removeItem(cookieName);
-
                 sessionObject = null;
             }
 
@@ -337,25 +319,6 @@ define([
                     return null;
                 }
                 sessionCookie = sessionCookies[0];
-
-                // Ensure that we have the extra cookie names as well.
-                var extraCookiesOk = true;
-                extraCookieNames.forEach(function (name) {
-                    var cookies = cookieManager.getItems(name);
-                    if (!cookies || cookies.length === 0) {
-                        extraCookiesOk = false;
-                    }
-                    if (sessionCookies.length > 1) {
-                        extraCookiesOk = false;
-                    }
-                    if (cookies[0] !== sessionCookie) {
-                        extraCookiesOk = false;
-                    }
-                });
-                if (!extraCookiesOk) {
-                    removeSession();
-                    return null;
-                }
 
                 // first pass just break out the string into fields.
                 var session = decodeToken(sessionCookie);
