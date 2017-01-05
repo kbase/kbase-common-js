@@ -19,7 +19,7 @@ module.exports = function (grunt) {
                     {
                         cwd: 'src/js',
                         src: '**/*',
-                        dest: 'dist/kb/common',
+                        dest: 'dist/kb_common',
                         expand: true
                     }
                 ]
@@ -39,5 +39,6 @@ module.exports = function (grunt) {
     grunt.registerTask('build', [        
         'copy:build'
     ]);
+
     
 };
