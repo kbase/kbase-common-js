@@ -8,6 +8,7 @@ module.exports = function (grunt) {
     
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-watch');
     
     // Project configuration.
     grunt.initConfig({
@@ -18,7 +19,7 @@ module.exports = function (grunt) {
                     {
                         cwd: 'src/js',
                         src: '**/*',
-                        dest: 'dist/kb/common',
+                        dest: 'dist/kb_common',
                         expand: true
                     }
                 ]
@@ -28,11 +29,16 @@ module.exports = function (grunt) {
             build: {
                 src: 'dist'
             }
+        },
+        watch: {
+            files: ['src/js/**/*'],
+            tasks: ['build']
         }
     });
     
     grunt.registerTask('build', [        
         'copy:build'
     ]);
+
     
 };

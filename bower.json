@@ -13,6 +13,7 @@
         "type": "amd",
         "root": "dist"
     },
+    "main": "dist/**/*",
     "dependencies": {
         "bluebird": "^3.0.0",
         "requirejs": "^2.1.20",
