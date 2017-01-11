@@ -5,6 +5,15 @@ define([], function () {
 
     // HTTP/AJAX ERROR
 
+    function RedirectError(code, message, xhr) {
+        this.code = code;
+        this.xhr = xhr;
+        this.message = message;
+    }
+    RedirectError.prototype = Object.create(Error.prototype);
+    RedirectError.prototype.constructor = RedirectError;
+    RedirectError.prototype.name = 'RedirectError';
+    
     function ClientError(code, message, xhr) {
         this.code = code;
         this.xhr = xhr;
@@ -13,7 +22,7 @@ define([], function () {
     ClientError.prototype = Object.create(Error.prototype);
     ClientError.prototype.constructor = ClientError;
     ClientError.prototype.name = 'ClientError';
-    
+
     function ServerError(code, message, xhr) {
         this.code = code;
         this.xhr = xhr;
@@ -112,6 +121,7 @@ define([], function () {
     AttributeError.prototype.name = 'AttributeError';
     
     return Object.freeze({
+        RedirectError: RedirectError,
         ClientError: ClientError,
         ServerError: ServerError,
         TimeoutError: TimeoutError, 

@@ -1,5 +1,3 @@
-/*global define */
-/*jslint white:true,browser:true,jsnomen:true*/
 define([
     './jsonRpc-native'
 ], function (jsonRpc) {
@@ -18,12 +16,15 @@ define([
     function GenericClient(arg) {
         // Establish an auth object which has properties token and user_id.
         var token = arg.token || (arg.auth ? arg.auth.token : null);
-        
+
         if (!arg.url) {
             throw new Error('The service discovery url was not provided');
         }
         if (!arg.version) {
             throw new Error('The service version was not provided');
+        }
+        if (!arg.module) {
+            throw new Error('The module was not provided');
         }
 
         function options() {
@@ -37,19 +38,18 @@ define([
         this.lookupModule = function () {
             var func = 'get_service_status',
                 params = [{
-                        module_name: module,
-                        version: arg.version || 'dev'
-                    }];
+                    module_name: arg.module,
+                    version: arg.version || 'dev'
+                }];
             // NB: pass null for numRets (number of return values) so we get the 
             // full return structure.
-            return jsonRpc.request(arg.url, 'ServiceWizard', func, params, null, options());
+            return jsonRpc.request(arg.url, 'ServiceWizard', func, params, options());
         };
-        
-        this.callFunc = function(funcName, params) {
-            // var params = Array.prototype.slice.call(arguments);
+
+        this.callFunc = function (funcName, params) {
             return this.lookupModule()
                 .spread(function (serviceStatus) {
-                    return jsonRpc.request(serviceStatus.url, module, funcName, params, null, options());
+                    return jsonRpc.request(serviceStatus.url, arg.module, funcName, params, options());
                 });
         };
 
