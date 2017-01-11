@@ -14,7 +14,9 @@ define([
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
-                if (xhr.status >= 400 && xhr.status < 500) {
+                if (xhr.status >= 300 && xhr.status < 400) {
+                    reject(new exceptions.RedirectError(xhr.status, 'Redirect Error', xhr));
+                } else if (xhr.status >= 400 && xhr.status < 500) {
                     reject(new exceptions.ClientError(xhr.status, 'Client Error', xhr));
                 } else if (xhr.status >= 500) {
                     reject(new exceptions.ServerError(xhr.status, 'Server Error', xhr));
@@ -35,7 +37,7 @@ define([
                 reject(new exceptions.ConnectionError('Request signalled error', xhr));
             };
             xhr.onabort = function () {
-                reject(new AbortError('Request was aborted', xhr));
+                reject(new exceptions.AbortError('Request was aborted', xhr));
             };
             //xhr.onloadend = function () {
             //};
@@ -83,8 +85,10 @@ define([
                 }
                 if (xhr.status >= 500) {
                     reject(new exceptions.ServerError(xhr.status, 'Server Error', xhr));
+                }                
+                if (xhr.status >= 300 && xhr.status < 400) {
+                    reject(new Error('Redirects not currently supported'));
                 }
-                
                 // var buf = new Uint8Array(xhr.response);
                 try {
                     resolve(xhr.response);
