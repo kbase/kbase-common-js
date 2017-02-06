@@ -467,7 +467,7 @@ define([
                             }
                             resolve(makeKbaseSession());
                         } else {
-                            reject(data.error_msg);
+                            reject(new Error(data.error_msg));
                         }
                     },
                     error: function (jqXHR, textStatus) {
@@ -497,7 +497,7 @@ define([
                         }
                         sessionObject = null;
 
-                        reject(errmsg);
+                        reject(new Error(errmsg));
                     }
                 });
             });
