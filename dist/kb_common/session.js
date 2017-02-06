@@ -378,7 +378,6 @@ define([
             // cookies and pretend we have nothing.
             // NB: the object returned from the auth service does NOT have the un field.
             if (!(kbaseSession.kbase_sessionid && kbaseSession.user_id && kbaseSession.token)) {
-                // throw new Error('Invalid Kbase Session Cookie');
                 removeSession();
                 return null;
             }
@@ -395,8 +394,6 @@ define([
             }
             return null;
         }
-
-
 
         /**
          * typedef {Object} LoginCredentials
@@ -425,12 +422,10 @@ define([
                 // Validate params.
                 if (!options.username || options.username.length === 0) {
                     reject('Username is empty: It is required for login');
-                    //  options.error('Username is empty: It is required for login');
                     return;
                 }
                 if (!options.password || options.password.length === 0) {
                     reject('Password is empty: It is required for login');
-                    //options.error('Password is empty: It is required for login');
                     return;
                 }
 
@@ -464,23 +459,18 @@ define([
                         // make cross-site requests
                         xhr.withCredentials = true;
                     },
-                    success: function (data, res, jqXHR) {
+                    success: function (data) {
                         if (data.kbase_sessionid) {
                             setSession(importFromAuthObject(data));
                             if (!options.disableCookie) {
                                 setSessionCookie();
                             }
-                            // options.success(makeKBaseSession());
                             resolve(makeKbaseSession());
                         } else {
                             reject(data.error_msg);
-                            //options.error({
-                            //    status: 0,
-                            //    message: data.error_msg
-                            //});
                         }
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
+                    error: function (jqXHR, textStatus) {
                         /* Some error cases
                          * status == 401 - show "uid/pw = wrong!" message
                          * status is not 401,
@@ -488,7 +478,7 @@ define([
                          *     and we do not have a responseJSON (or it's something else): show a generic message
                          */
                         var errmsg = textStatus;
-                        var wrongPwMsg = "The login attempt failed: Username &amp; Password combination are incorrect";
+                        var wrongPwMsg = 'The login attempt failed: Username &amp; Password combination are incorrect';
                         if (jqXHR.status && jqXHR.status === 401) {
                             errmsg = wrongPwMsg;
                         } else if (jqXHR.responseJSON) {
@@ -497,19 +487,16 @@ define([
                                 errmsg = jqXHR.responseJSON.error_msg;
                             }
                             // if that's the unclear auth fail message, update it
-                            if (errmsg === "LoginFailure: Authentication failed.") {
+                            if (errmsg === 'LoginFailure: Authentication failed.') {
                                 errmsg = wrongPwMsg;
                             }
                         }
                         // if we get through here and still have a useless error message, update that, too.
-                        if (errmsg === "error") {
-                            errmsg = "Internal Error: Error connecting to the login server";
+                        if (errmsg === 'error') {
+                            errmsg = 'Internal Error: Error connecting to the login server';
                         }
                         sessionObject = null;
-                        error = {
-                            message: errmsg
-                        };
-                        // options.error(errmsg);
+
                         reject(errmsg);
                     }
                 });
@@ -583,6 +570,4 @@ define([
             return factory(config);
         }
     };
-    // var SingletonSession = Object.create(Session).init();
-    // return SingletonSession;
 });
