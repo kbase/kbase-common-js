@@ -86,6 +86,10 @@ define([
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 // console.log('onload', xhr);
+                if (options.throw === false) {
+                    resolve(xhr);
+                    return;
+                }
                 if (xhr.status >= 300 && xhr.status < 400) {
                     reject(new RedirectException(xhr.status, 'Redirection', xhr));
                 }
@@ -98,7 +102,11 @@ define([
                 
                 // var buf = new Uint8Array(xhr.response);
                 try {
-                    resolve(xhr.response);
+                    if (options.detailed) {
+                        resolve(xhr);
+                    } else {
+                        resolve(xhr.response);
+                    }
                 } catch (ex) {
                     reject(ex);
                 }
