@@ -9,6 +9,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-clean');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.loadNpmTasks('grunt-jsvalidate');
     
     // Project configuration.
     grunt.initConfig({
@@ -33,10 +34,26 @@ module.exports = function (grunt) {
         watch: {
             files: ['src/js/**/*'],
             tasks: ['build']
+        },
+        jsvalidate: {
+            options: {
+                globals: {},
+                esprimaOptions: {
+                    strict: true,
+                    comment: true
+                },
+                verbose: true
+            },
+            targetName: {
+                files: {
+                    src: 'src/js/test.js'
+                }
+            }
         }
     });
     
-    grunt.registerTask('build', [        
+    grunt.registerTask('build', [
+        'jsvalidate',     
         'copy:build'
     ]);
 

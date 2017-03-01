@@ -1,10 +1,14 @@
+/* eslint-env browser, jasmine, amd */
+/* globals browser, jasmin, amd */
 define([
-    'kb/common/jsonRpc/genericClient',
-    'kb/common/jsonRpc/exceptions',
-    'kb/common/session',
+    'kb_common/jsonRpc/genericClient',
+    'kb_common/jsonRpc/exceptions',
+    'kb_common/session',
     'testConfig'
 ], function (GenericClient, exceptions, Session, testConfig) {
     'use strict';
+
+    var mockBase = 'http://localhost:8099';
 
     function getToken(username, password) {
         var session = Session.make({
@@ -121,7 +125,7 @@ define([
 
         it('Wrong url on existing service -- should generate 404', function (done) {
             var profileService = new GenericClient({
-                url: 'http://localhost:8090/trigger/404',
+                url: mockBase + '/trigger/404',
                 module: 'UserProfile',
                 timeout: 1000
             });
@@ -145,7 +149,7 @@ define([
 
         it('Detects server error -- should generate 500', function (done) {
             var profileService = new GenericClient({
-                url: 'http://localhost:8090/trigger/500',
+                url: mockBase + '/trigger/500',
                 module: 'UserProfile',
                 timeout: 1000
             });
@@ -296,7 +300,7 @@ define([
                     });
                     return workspaceService.callFunc('get_workspace_info', [{
                         id: id
-                    }])
+                    }]);
                 })
                 .then(function (result) {
                     expect(result.length).toBe(1);

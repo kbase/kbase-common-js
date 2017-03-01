@@ -7,8 +7,16 @@ define([
 
     function factory(config) {
         var services = {};
-        function addService(serviceName, serviceDef) {
-            services[serviceName] = {
+        function addService(serviceConfig, serviceDef) {
+            if (typeof serviceConfig === 'string') {
+                serviceConfig = {
+                    name: serviceConfig,
+                    module: serviceConfig
+                };
+            }
+            services[serviceConfig.name] = {
+                name: serviceConfig.name,
+                module: serviceConfig.module,
                 config: serviceDef
             };
         }
@@ -19,7 +27,7 @@ define([
                 if (!moduleName) {
                     moduleName = 'kb_appServices_' + name;
                     var paths = {},
-                        path = services[name].config.path || 'app/services/' + name;
+                        path = services[name].config.path || 'app/services/' + service.module;
                     paths[moduleName] = path;
                     require.config({
                         paths: paths
@@ -56,7 +64,7 @@ define([
                     return Promise.try(function () {
                         return service.start();
                     });
-                })
+                });
 //                    .catch(function (err) {
 //                        console.error('Error starting service ' + name);
 //                        console.error('err');

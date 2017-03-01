@@ -4,20 +4,55 @@ define([
     'bluebird'
 ], function (Promise) {
     'use strict';
-    function ClientException(code, message, xhr) {
+    function RedirectException(code, message, xhr) {
+        if (! (this instanceof RedirectException)) {
+            return new RedirectException(code, message, xhr);
+        }
         this.code = code;
         this.xhr = xhr;
         this.message = message;
-    }
-    ClientException.prototype = Object.create(Error);
+        this.content = xhr.responseText;
+    }    
+    RedirectException.prototype = Object.create(Error.prototype);
+    RedirectException.prototype.toString = function () {
+        if (this.message) {
+            return this.message;
+        }
+        return 'redirection';
+    };
+    RedirectException.prototype.constructor = RedirectException;
+
+    function ClientException(code, message, xhr) {
+        if (! (this instanceof ClientException)) {
+            return new ClientException(code, message, xhr);
+        }
+        this.code = code;
+        this.xhr = xhr;
+        this.message = message;
+        this.content = xhr.responseText;
+    }    
+    ClientException.prototype = Object.create(Error.prototype);
+    ClientException.prototype.toString = function () {
+        if (this.message) {
+            return this.message;
+        }
+        return 'client error';
+    };
     ClientException.prototype.constructor = ClientException;
     
     function ServerException(code, message, xhr) {
         this.code = code;
         this.xhr = xhr;
         this.message = message;
+        this.content = xhr.responseText;
     }
     ServerException.prototype = Object.create(Error);
+    ServerException.prototype.toString = function () {
+        if (this.message) {
+            return this.message;
+        }
+        return 'client error';
+    };
     ServerException.prototype.constructor = ServerException;
     
     function TimeoutException(timeout, elapsed, message, xhr) {
@@ -50,6 +85,10 @@ define([
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
+                // console.log('onload', xhr);
+                if (xhr.status >= 300 && xhr.status < 400) {
+                    reject(new RedirectException(xhr.status, 'Redirection', xhr));
+                }
                 if (xhr.status >= 400 && xhr.status < 500) {
                     reject(new ClientException(xhr.status, 'Client Error', xhr));
                 }
@@ -76,7 +115,6 @@ define([
                 reject(new AbortException('Request was aborted', xhr));
             };
 
-
             xhr.timeout = options.timeout || 60000;
             try {
                 xhr.open('POST', options.url, true);
@@ -101,6 +139,9 @@ define([
                     xhr.send(options.data);
                 } else if (options.data instanceof Array) {
                     xhr.send(new Uint8Array(options.data));
+                } else if (options.data === undefined || options.data === null) {
+                    // nothing to do, don't send anything.
+                    xhr.send();
                 } else {
                     reject(new Error('Invalid type of data to send'));
                 }
@@ -115,7 +156,7 @@ define([
             startTime = new Date();
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
-            xhr.onload = function (e) {
+            xhr.onload = function () {                
                 if (xhr.status >= 400 && xhr.status < 500) {
                     reject(new ClientException(xhr.status, 'Client Error', xhr));
                 }

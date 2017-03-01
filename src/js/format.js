@@ -26,7 +26,7 @@ define([], function () {
             now = nowDateObj;
         }
 
-        var shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
         var elapsed = Math.round((now.getTime() - date.getTime()) / 1000);
         var elapsedAbs = Math.abs(elapsed);
@@ -70,9 +70,9 @@ define([], function () {
         }
         // otherwise show the actual date, with or without the year.
         if (now.getFullYear() === date.getFullYear()) {
-            return shortMonths[date.getMonth()] + " " + date.getDate();
+            return shortMonths[date.getMonth()] + ' ' + date.getDate();
         }
-        return shortMonths[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+        return shortMonths[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear();
     }
 
     /**
@@ -98,21 +98,21 @@ define([], function () {
             date = dateObj;
         }
 
-        var shortMonths = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        var shortMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         var minutes = date.getMinutes();
         if (minutes < 10) {
-            minutes = "0" + minutes;
+            minutes = '0' + minutes;
         }
         if (date.getHours() >= 12) {
             if (date.getHours() !== 12) {
-                time = (date.getHours() - 12) + ":" + minutes + "pm";
+                time = (date.getHours() - 12) + ':' + minutes + 'pm';
             } else {
-                time = "12:" + minutes + "pm";
+                time = '12:' + minutes + 'pm';
             }
         } else {
-            time = date.getHours() + ":" + minutes + "am";
+            time = date.getHours() + ':' + minutes + 'am';
         }
-        return shortMonths[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear() + " at " + time;
+        return shortMonths[date.getMonth()] + ' ' + date.getDate() + ', ' + date.getFullYear() + ' at ' + time;
     }
 
     /**

@@ -108,10 +108,22 @@ define([], function () {
             return params;
         }
 
+        function getQuery() {
+            var query = window.location.search;
+            if (!query || query.length === 1) {
+                return {};
+            }
+            return parseQueryString(query.substr(1));
+        }
+
         function getCurrentRequest() {
             var path = [],
-                query = {},
+                query,
+                query2 = {},
                 hash, pathQuery;
+
+            // Also get the query the normal way ...
+            query = getQuery();
 
             // The path is (for now) from the hash component.
             if (window.location.hash && window.location.hash.length > 1) {
@@ -119,7 +131,10 @@ define([], function () {
                 pathQuery = hash.split('?', 2);
 
                 if (pathQuery.length === 2) {
-                    query = parseQueryString(pathQuery[1]);
+                    query2 = parseQueryString(pathQuery[1]);
+                    Object.keys(query2).forEach(function (key) {
+                        query[key] = query2[key];
+                    });
                 }
                 path = pathQuery[0].split('/')
                     .filter(function (pathComponent) {
