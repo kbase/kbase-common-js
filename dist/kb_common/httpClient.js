@@ -1,18 +1,23 @@
 /*global define */
 /*jslint white: true */
 define([
-    'bluebird'
-], function (Promise) {
+    'bluebird',
+    './httpUtils'
+], function (
+    Promise,
+    httpUtils
+) {
     'use strict';
+
     function RedirectException(code, message, xhr) {
-        if (! (this instanceof RedirectException)) {
+        if (!(this instanceof RedirectException)) {
             return new RedirectException(code, message, xhr);
         }
         this.code = code;
         this.xhr = xhr;
         this.message = message;
         this.content = xhr.responseText;
-    }    
+    }
     RedirectException.prototype = Object.create(Error.prototype);
     RedirectException.prototype.toString = function () {
         if (this.message) {
@@ -23,14 +28,14 @@ define([
     RedirectException.prototype.constructor = RedirectException;
 
     function ClientException(code, message, xhr) {
-        if (! (this instanceof ClientException)) {
+        if (!(this instanceof ClientException)) {
             return new ClientException(code, message, xhr);
         }
         this.code = code;
         this.xhr = xhr;
         this.message = message;
         this.content = xhr.responseText;
-    }    
+    }
     ClientException.prototype = Object.create(Error.prototype);
     ClientException.prototype.toString = function () {
         if (this.message) {
@@ -39,7 +44,7 @@ define([
         return 'client error';
     };
     ClientException.prototype.constructor = ClientException;
-    
+
     function ServerException(code, message, xhr) {
         this.code = code;
         this.xhr = xhr;
@@ -54,7 +59,7 @@ define([
         return 'client error';
     };
     ServerException.prototype.constructor = ServerException;
-    
+
     function TimeoutException(timeout, elapsed, message, xhr) {
         this.timeout = timeout;
         this.elapsed = elapsed;
@@ -63,47 +68,65 @@ define([
     }
     TimeoutException.prototype = Object.create(Error);
     TimeoutException.prototype.constructor = TimeoutException;
-    
-     
+
+
     function GeneralException(message, xhr) {
         this.xhr = xhr;
         this.message = message;
     }
     GeneralException.prototype = Object.create(Error);
     GeneralException.prototype.constructor = GeneralException;
-    
+
     function AbortException(message, xhr) {
         this.xhr = xhr;
         this.message = message;
     }
     AbortException.prototype = Object.create(Error);
     AbortException.prototype.constructor = AbortException;
-    
-    function post(options) {
+
+    /*
+        request
+        The most generic http request method. It only throws
+        exceptions on xhr error events. Otherwise responses
+        are returned as a structure abstracted from the xhr itself
+        (although for hard-core the xhr is included itself).
+        That is, all non-200 reponses as well as 200 are considered
+        success, and are returned as pure data.
+    */
+    function getHeader(xhr) {
+        var header = {};
+        var headerString = xhr.getAllResponseHeaders();
+        if (!headerString) {
+            return header;
+        }
+
+        var headerFields = headerString.split(/\n/);
+        // remove the final empty element, created by 
+        // the ultimate CRLF.
+        headerFields.pop();
+        headerFields
+            .forEach(function (field) {
+                var firstColon = field.indexOf(':', 0);
+                var name = field.substr(0, firstColon).trim();
+                var value = field.substr(firstColon + 1).trim();
+                header[name] = value;
+            });
+        return header;
+    }
+
+    function request(options) {
         var timeout = options.timeout || 60000,
             startTime = new Date();
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
-                // console.log('onload', xhr);
-                if (xhr.status >= 300 && xhr.status < 400) {
-                    reject(new RedirectException(xhr.status, 'Redirection', xhr));
-                }
-                if (xhr.status >= 400 && xhr.status < 500) {
-                    reject(new ClientException(xhr.status, 'Client Error', xhr));
-                }
-                if (xhr.status >= 500) {
-                    reject(new ServerException(xhr.status, 'Server Error', xhr));
-                }
-                
-                // var buf = new Uint8Array(xhr.response);
-                try {
-                    resolve(xhr.response);
-                } catch (ex) {
-                    reject(ex);
-                }
+                resolve({
+                    status: xhr.status,
+                    response: xhr.response,
+                    header: getHeader(xhr)
+                });
             };
-            
+
             xhr.ontimeout = function () {
                 var elapsed = (new Date()) - startTime;
                 reject(new TimeoutException(timeout, elapsed, 'Request timeout', xhr));
@@ -115,15 +138,19 @@ define([
                 reject(new AbortException('Request was aborted', xhr));
             };
 
+            var url = new URL(options.url);
+            if (options.query) {
+                url.search = httpUtils.encodeQuery(options.query);
+            }
+
             xhr.timeout = options.timeout || 60000;
             try {
-                xhr.open('POST', options.url, true);
+                xhr.open(options.method, url.toString(), true);
             } catch (ex) {
                 reject(new GeneralException('Error opening request', xhr));
             }
 
             try {
-                
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
@@ -133,12 +160,12 @@ define([
                     xhr.responseType = options.responseType;
                 }
                 xhr.withCredentials = options.withCredentials || false;
-                
+
                 // We support two types of data to send ... strings or int (byte) buffers
                 if (typeof options.data === 'string') {
                     xhr.send(options.data);
-                } else if (options.data instanceof Array) {
-                    xhr.send(new Uint8Array(options.data));
+                //} else if (options.data instanceof Array) {
+                //    xhr.send(new Uint8Array(options.data));
                 } else if (options.data === undefined || options.data === null) {
                     // nothing to do, don't send anything.
                     xhr.send();
@@ -149,70 +176,13 @@ define([
                 reject(new GeneralException('Error sending data in request', xhr));
             }
         });
-    }
-    
-    function get(options) {
-        var timeout = options.timeout || 60000,
-            startTime = new Date();
-        return new Promise(function (resolve, reject) {
-            var xhr = new XMLHttpRequest();
-            xhr.onload = function () {                
-                if (xhr.status >= 400 && xhr.status < 500) {
-                    reject(new ClientException(xhr.status, 'Client Error', xhr));
-                }
-                if (xhr.status >= 500) {
-                    reject(new ServerException(xhr.status, 'Server Error', xhr));
-                }
-                
-                // var buf = new Uint8Array(xhr.response);
-                try {
-                    resolve(xhr.response);
-                } catch (ex) {
-                    reject(ex);
-                }
-            };
-            
-            xhr.ontimeout = function () {
-                var elapsed = (new Date()) - startTime;
-                reject(new TimeoutException(timeout, elapsed, 'Request timeout', xhr));
-            };
-            xhr.onerror = function () {
-                reject(new GeneralException('General request error', xhr));
-            };
-            xhr.onabort = function () {
-                reject(new AbortException('Request was aborted', xhr));
-            };
 
-            xhr.timeout = options.timeout || 60000;
-            try {
-                xhr.open('GET', options.url, true);
-            } catch (ex) {
-                reject(new GeneralException('Error opening request', xhr));
-            }
-
-            try {
-                
-                if (options.header) {
-                    Object.keys(options.header).forEach(function (key) {
-                        xhr.setRequestHeader(key, options.header[key]);
-                    });
-                }
-                if (options.responseType) {
-                    xhr.responseType = options.responseType;
-                }
-                xhr.withCredentials = options.withCredentials || false;
-                
-                // We support two types of data to send ... strings or int (byte) buffers
-                xhr.send();
-            } catch (ex) {
-                reject(new GeneralException('Error sending data in request', xhr));
-            }
-        });
     }
 
     return {
-        get: get,
-        post: post,
+        request: request,
+        // get: get,
+        // post: post,
         GeneralException: GeneralException,
         AbortException: AbortException,
         TimeoutException: TimeoutException,

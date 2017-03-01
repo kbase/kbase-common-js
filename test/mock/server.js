@@ -2,7 +2,7 @@
 
 var http = require('http');
 
-const PORT = 8090;
+var PORT = 8099;
 
 function enableCors(response) {
     response.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,12 +20,12 @@ function handleRequest(request, response) {
     var action = path[0];
     enableCors(response);
     switch (action) {
-        case 'trigger':
-            handleTrigger(path.slice(1), request, response);
-            break;
-        default:
-            response.writeHead(400, 'Invalid request: ' + request.url);
-            response.end();            
+    case 'trigger':
+        handleTrigger(path.slice(1), request, response);
+        break;
+    default:
+        response.writeHead(400, 'Invalid request: ' + request.url);
+        response.end();
     }
 }
 
@@ -33,4 +33,4 @@ var server = http.createServer(handleRequest);
 
 server.listen(PORT, function () {
     console.log('Mock server started on ' + PORT);
-})
+});
