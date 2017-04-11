@@ -1,46 +1,53 @@
 define([
+    'jquery',
     './html',
     'bootstrap'
 ], function (
+    $,
     html
 ) {
+    'use strict';
+
     var t = html.tag,
         div = t('div'),
         span = t('span'),
         table = t('table'),
         tr = t('tr'),
         td = t('td'),
-        th = t('th');
+        th = t('th'),
+        ul = t('ul'),
+        li = t('li'),
+        a = t('a');
 
     function buildPresentableJson(data) {
         switch (typeof data) {
-        case 'string':
-            return data;
-        case 'number':
-            return String(data);
-        case 'boolean':
-            return String(data);
-        case 'object':
-            if (data === null) {
-                return 'NULL';
-            }
-            if (data instanceof Array) {
+            case 'string':
+                return data;
+            case 'number':
+                return String(data);
+            case 'boolean':
+                return String(data);
+            case 'object':
+                if (data === null) {
+                    return 'NULL';
+                }
+                if (data instanceof Array) {
+                    return table({ class: 'table table-striped' },
+                        data.map(function (datum, index) {
+                            return tr([
+                                th(String(index)),
+                                td(buildPresentableJson(datum))
+                            ]);
+                        }).join('\n')
+                    );
+                }
                 return table({ class: 'table table-striped' },
-                    data.map(function (datum, index) {
-                        return tr([
-                            th(String(index)),
-                            td(buildPresentableJson(datum))
-                        ]);
+                    Object.keys(data).map(function (key) {
+                        return tr([th(key), td(buildPresentableJson(data[key]))]);
                     }).join('\n')
                 );
-            }
-            return table({ class: 'table table-striped' },
-                Object.keys(data).map(function (key) {
-                    return tr([th(key), td(buildPresentableJson(data[key]))]);
-                }).join('\n')
-            );
-        default:
-            return 'Not representable: ' + (typeof data);
+            default:
+                return 'Not representable: ' + (typeof data);
         }
     }
 
@@ -92,12 +99,16 @@ define([
         if (args.classes) {
             classes = classes.concat(args.classes);
         }
+        if (args.class) {
+            classes.push(args.class);
+        }
         if (args.icon) {
             icon = [' ', buildIcon(args.icon)];
         }
         return div({
             class: classes.join(' '),
-            dataElement: args.name
+            dataElement: args.name,
+            id: args.id
         }, [
             (function () {
                 if (args.title) {
@@ -124,7 +135,6 @@ define([
             icon;
         if (args.hidden) {
             classes.push('hidden');
-            // style.display = 'none';
         }
         if (!args.collapsed) {
             collapseClasses.push('in');
@@ -155,8 +165,7 @@ define([
         ]);
     }
 
-    function collapsePanel(path) {
-        var node = getElement(path);
+    function collapsePanel(node) {
         if (!node) {
             return;
         }
@@ -170,8 +179,7 @@ define([
         collapseTarget.setAttribute('aria-expanded', 'false');
     }
 
-    function expandPanel(path) {
-        var node = getElement(path);
+    function expandPanel(node) {
         if (!node) {
             return;
         }
@@ -185,12 +193,138 @@ define([
         collapseTarget.setAttribute('aria-expanded', 'true');
     }
 
+
+    function reverse(arr) {
+        var newArray = [],
+            i, len = arr.length;
+        for (i = len - 1; i >= 0; i -= 1) {
+            newArray.push(arr[i]);
+        }
+        return newArray;
+    }
+
+    function buildTabs(arg) {
+        var tabsId = arg.id,
+            tabsAttribs = {},
+            tabClasses = ['nav', 'nav-tabs'],
+            tabStyle = {},
+            activeIndex, tabTabs,
+            tabs = arg.tabs.filter(function (tab) {
+                return (tab ? true : false);
+            }),
+            selectedTab = arg.initialTab || 0,
+            events = [],
+            content,
+            tabMap = {},
+            panelClasses = ['tab-pane'];
+
+        if (arg.fade) {
+            panelClasses.push('fade');
+        }
+
+        if (tabsId) {
+            tabsAttribs.id = tabsId;
+        }
+
+        tabs.forEach(function (tab, index) {
+            tab.panelId = html.genId();
+            tab.tabId = html.genId();
+            if (tab.name) {
+                tabMap[tab.name] = tab.tabId;
+            }
+            if (tab.selected === true && selectedTab === undefined) {
+                selectedTab = index;
+            }
+            if (tab.events) {
+                tab.events.forEach(function (event) {
+                    events.push({
+                        id: tab.tabId,
+                        jquery: true,
+                        type: event.type + '.bs.tab',
+                        handler: event.handler
+                    });
+                });
+            }
+        });
+        if (arg.alignRight) {
+            tabTabs = reverse(tabs);
+            tabStyle.float = 'right';
+            if (selectedTab !== undefined) {
+                activeIndex = tabs.length - 1 - selectedTab;
+            }
+        } else {
+            tabTabs = tabs;
+            if (selectedTab !== undefined) {
+                activeIndex = selectedTab;
+            }
+        }
+        content = div(tabsAttribs, [
+            ul({ class: tabClasses.join(' '), role: 'tablist' },
+                tabTabs.map(function (tab, index) {
+                    var tabAttribs = {
+                            role: 'presentation'
+                        },
+                        linkAttribs = {
+                            href: '#' + tab.panelId,
+                            dataElement: 'tab',
+                            ariaControls: tab.panelId,
+                            role: 'tab',
+                            id: tab.tabId,
+                            dataPanelId: tab.panelId,
+                            dataToggle: 'tab'
+                        },
+                        icon, label = span({ dataElement: 'label' }, tab.label);
+                    if (tab.icon) {
+                        icon = buildIcon({ name: tab.icon });
+                    } else {
+                        icon = '';
+                    }
+
+                    if (tab.name) {
+                        linkAttribs.dataName = tab.name;
+                    }
+                    if (index === activeIndex) {
+                        tabAttribs.class = 'active';
+                    }
+                    tabAttribs.style = tabStyle;
+                    return li(tabAttribs, a(linkAttribs, [icon, label].join(' ')));
+                })),
+            div({ class: 'tab-content' },
+                tabs.map(function (tab, index) {
+                    var attribs = {
+                        role: 'tabpanel',
+                        class: panelClasses.join(' '),
+                        id: tab.panelId,
+                        style: arg.style || {}
+                    };
+                    if (tab.name) {
+                        attribs.dataName = tab.name;
+                    }
+                    if (index === 0) {
+                        attribs.class += ' active';
+                    }
+                    return div(attribs, tab.content);
+                }))
+        ]);
+        return {
+            content: content,
+            events: events,
+            map: tabMap
+        };
+    }
+
+    function activateTooltips(node, options) {
+        $(node).find('[data-toggle="tooltip"]').tooltip(options);
+    }
+
     return Object.freeze({
         buildPresentableJson: buildPresentableJson,
         buildPanel: buildPanel,
         buildCollapsiblePanel: buildCollapsiblePanel,
         collapsePanel: collapsePanel,
         expandPanel: expandPanel,
-        buildIcon: buildIcon
+        buildIcon: buildIcon,
+        buildTabs: buildTabs,
+        activateTooltips: activateTooltips
     });
 });
