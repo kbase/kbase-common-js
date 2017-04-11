@@ -164,8 +164,8 @@ define([
                 // We support two types of data to send ... strings or int (byte) buffers
                 if (typeof options.data === 'string') {
                     xhr.send(options.data);
-                //} else if (options.data instanceof Array) {
-                //    xhr.send(new Uint8Array(options.data));
+                    // } else if (options.data instanceof Array) {
+                    //     xhr.send(new Uint8Array(options.data));  
                 } else if (options.data === undefined || options.data === null) {
                     // nothing to do, don't send anything.
                     xhr.send();

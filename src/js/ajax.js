@@ -4,15 +4,16 @@ define([
     'bluebird'
 ], function (Promise) {
     'use strict';
+
     function RedirectException(code, message, xhr) {
-        if (! (this instanceof RedirectException)) {
+        if (!(this instanceof RedirectException)) {
             return new RedirectException(code, message, xhr);
         }
         this.code = code;
         this.xhr = xhr;
         this.message = message;
         this.content = xhr.responseText;
-    }    
+    }
     RedirectException.prototype = Object.create(Error.prototype);
     RedirectException.prototype.toString = function () {
         if (this.message) {
@@ -23,14 +24,14 @@ define([
     RedirectException.prototype.constructor = RedirectException;
 
     function ClientException(code, message, xhr) {
-        if (! (this instanceof ClientException)) {
+        if (!(this instanceof ClientException)) {
             return new ClientException(code, message, xhr);
         }
         this.code = code;
         this.xhr = xhr;
         this.message = message;
         this.content = xhr.responseText;
-    }    
+    }
     ClientException.prototype = Object.create(Error.prototype);
     ClientException.prototype.toString = function () {
         if (this.message) {
@@ -39,7 +40,7 @@ define([
         return 'client error';
     };
     ClientException.prototype.constructor = ClientException;
-    
+
     function ServerException(code, message, xhr) {
         this.code = code;
         this.xhr = xhr;
@@ -54,7 +55,7 @@ define([
         return 'client error';
     };
     ServerException.prototype.constructor = ServerException;
-    
+
     function TimeoutException(timeout, elapsed, message, xhr) {
         this.timeout = timeout;
         this.elapsed = elapsed;
@@ -63,22 +64,22 @@ define([
     }
     TimeoutException.prototype = Object.create(Error);
     TimeoutException.prototype.constructor = TimeoutException;
-    
-     
+
+
     function GeneralException(message, xhr) {
         this.xhr = xhr;
         this.message = message;
     }
     GeneralException.prototype = Object.create(Error);
     GeneralException.prototype.constructor = GeneralException;
-    
+
     function AbortException(message, xhr) {
         this.xhr = xhr;
         this.message = message;
     }
     AbortException.prototype = Object.create(Error);
     AbortException.prototype.constructor = AbortException;
-    
+
     function post(options) {
         var timeout = options.timeout || 60000,
             startTime = new Date();
@@ -86,10 +87,6 @@ define([
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 // console.log('onload', xhr);
-                if (options.throw === false) {
-                    resolve(xhr);
-                    return;
-                }
                 if (xhr.status >= 300 && xhr.status < 400) {
                     reject(new RedirectException(xhr.status, 'Redirection', xhr));
                 }
@@ -99,19 +96,15 @@ define([
                 if (xhr.status >= 500) {
                     reject(new ServerException(xhr.status, 'Server Error', xhr));
                 }
-                
+
                 // var buf = new Uint8Array(xhr.response);
                 try {
-                    if (options.detailed) {
-                        resolve(xhr);
-                    } else {
-                        resolve(xhr.response);
-                    }
+                    resolve(xhr.response);
                 } catch (ex) {
                     reject(ex);
                 }
             };
-            
+
             xhr.ontimeout = function () {
                 var elapsed = (new Date()) - startTime;
                 reject(new TimeoutException(timeout, elapsed, 'Request timeout', xhr));
@@ -131,7 +124,7 @@ define([
             }
 
             try {
-                
+
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
@@ -141,7 +134,7 @@ define([
                     xhr.responseType = options.responseType;
                 }
                 xhr.withCredentials = options.withCredentials || false;
-                
+
                 // We support two types of data to send ... strings or int (byte) buffers
                 if (typeof options.data === 'string') {
                     xhr.send(options.data);
@@ -158,20 +151,20 @@ define([
             }
         });
     }
-    
+
     function get(options) {
         var timeout = options.timeout || 60000,
             startTime = new Date();
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
-            xhr.onload = function () {                
+            xhr.onload = function () {
                 if (xhr.status >= 400 && xhr.status < 500) {
                     reject(new ClientException(xhr.status, 'Client Error', xhr));
                 }
                 if (xhr.status >= 500) {
                     reject(new ServerException(xhr.status, 'Server Error', xhr));
                 }
-                
+
                 // var buf = new Uint8Array(xhr.response);
                 try {
                     resolve(xhr.response);
@@ -179,7 +172,7 @@ define([
                     reject(ex);
                 }
             };
-            
+
             xhr.ontimeout = function () {
                 var elapsed = (new Date()) - startTime;
                 reject(new TimeoutException(timeout, elapsed, 'Request timeout', xhr));
@@ -199,7 +192,7 @@ define([
             }
 
             try {
-                
+
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
@@ -209,7 +202,7 @@ define([
                     xhr.responseType = options.responseType;
                 }
                 xhr.withCredentials = options.withCredentials || false;
-                
+
                 // We support two types of data to send ... strings or int (byte) buffers
                 xhr.send();
             } catch (ex) {
