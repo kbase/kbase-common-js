@@ -20,11 +20,14 @@ define([
         if (!arg.url) {
             throw new Error('The service discovery url was not provided');
         }
-        if (!arg.version) {
-            throw new Error('The service version was not provided');
-        }
+
         if (!arg.module) {
             throw new Error('The module was not provided');
+        }
+
+        var version = arg.version || null;
+        if (arg.version === 'auto') {
+            version = null;
         }
 
         function options() {
@@ -39,7 +42,7 @@ define([
             var func = 'get_service_status',
                 params = [{
                     module_name: arg.module,
-                    version: arg.version || 'dev'
+                    version: version
                 }];
             // NB: pass null for numRets (number of return values) so we get the 
             // full return structure.
