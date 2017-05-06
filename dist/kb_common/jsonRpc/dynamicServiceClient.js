@@ -8,7 +8,7 @@ define([
         config = config || {};
         var cache = {};
         // 10 minute cache lifetime
-        var cacheLifetime = config.itemLifetime || 600000;
+        var cacheLifetime = config.itemLifetime || 1800000;
 
         // Frequency with which to monitor the cache for expired items
         // or refreshing them.
@@ -147,7 +147,6 @@ define([
             set: setItem
         };
     }
-
     var moduleCache = Cache();
 
 
