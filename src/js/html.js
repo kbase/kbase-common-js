@@ -71,6 +71,7 @@ define([
                 return '-' + m.toLowerCase();
             });
         }
+
         function makeStyleAttribs(attribs) {
             if (attribs) {
                 return Object.keys(attribs)
@@ -93,6 +94,25 @@ define([
             return '';
         }
 
+        /*
+        THe correct form is 'attrib-key'
+        Usage in the wild may be "attrib-key", which is converted to the above
+        Or just attrib-key, which is then wrapped in '
+        The hyphenation of attribKey will not work because knockout keys
+        may be legitimately camelCased.
+        */
+        function fixKey(key) {
+            if (key.match(/'.*'/)) {
+                return key;
+            }
+            if (key.match(/".*"/)) {
+                return key.replace(/"/g, '\'');
+            }
+            if (key.match(/-/)) {
+                return '\'' + key + '\'';
+            }
+            return key;
+        }
         /**
          * The attributes for knockout's data-bind is slightly different than
          * for style. The syntax is that of a simple javascript object.
@@ -110,9 +130,15 @@ define([
                 return Object.keys(attribs)
                     .map(function (key) {
                         var value = attribs[key];
+                        key = fixKey(key);
                         if (typeof value === 'string') {
                             //var escapedValue = value.replace(/\"/g, '\\"');
-                            return key + ':' + value;
+                            // Ensure that all quoting within data-bind values is 
+                            // converted to single quotes, since the generated html
+                            // attribs are always quoted with double-quotes.
+                            var valueFixed = value.replace(/"/g, '\'');
+
+                            return key + ':' + valueFixed;
                         }
                         if (typeof value === 'object') {
                             return key + ': {' + makeDataBindAttribs(value) + '}';
@@ -139,7 +165,9 @@ define([
          * @returns {String}
          */
         function makeTagAttribs(attribs) {
-            var quoteChar = '"', escapedValue;
+            var quoteChar = '"',
+                quoteEscaped = '&quot;',
+                escapedValue;
             if (attribs) {
                 return Object.keys(attribs)
                     .map(function (key) {
@@ -158,23 +186,19 @@ define([
                                 value = value.join(' ');
                             } else {
                                 switch (attribName) {
-                                    case 'style':
-                                        value = makeStyleAttribs(value);
-                                        break;
-                                    case 'data-bind':
-                                        // reverse the quote char, since data-bind attributes 
-                                        // can contain double-quote, which can't itself
-                                        // be quoted.
-                                        quoteChar = "'";
-                                        value = makeDataBindAttribs(value);
-                                        break;
-                                    default:
-                                        value = false;
+                                case 'style':
+                                    value = makeStyleAttribs(value);
+                                    break;
+                                case 'data-bind':
+                                    value = makeDataBindAttribs(value);
+                                    break;
+                                default:
+                                    value = false;
                                 }
                             }
                         }
                         if (typeof value === 'string') {
-                            escapedValue = value.replace(new RegExp('\\' + quoteChar, 'g'), '\\' + quoteChar);
+                            escapedValue = value.replace(/"/g, quoteEscaped);
                             return attribName + '=' + quoteChar + escapedValue + quoteChar;
                         }
                         if (typeof value === 'boolean') {
@@ -195,6 +219,7 @@ define([
             }
             return '';
         }
+
         function renderContent(children) {
             if (children) {
                 if (underscore.isString(children)) {
@@ -212,6 +237,7 @@ define([
                 return '';
             }
         }
+
         function merge(obj1, obj2) {
             function isObject(x) {
                 if (typeof x === 'object' &&
@@ -221,6 +247,7 @@ define([
                 }
                 return false;
             }
+
             function merger(a, b) {
                 Object.keys(b).forEach(function (key) {
                     if (isObject(a) && isObject(b)) {
@@ -232,6 +259,7 @@ define([
             }
             return merger(obj1, obj2);
         }
+
         function tag(tagName, options) {
             options = options || {};
             var tagAttribs;
@@ -289,24 +317,27 @@ define([
             }
             return tagFun;
         }
+
         function genId() {
             return 'kb_html_' + (new Uuid(4)).format();
         }
+
         function makeTable(arg) {
             var table = tag('table'),
                 thead = tag('thead'),
                 tbody = tag('tbody'),
                 tr = tag('tr'),
                 th = tag('th'),
-                td = tag('td'), id, attribs;
+                td = tag('td'),
+                id, attribs;
             arg = arg || {};
             if (arg.id) {
                 id = arg.id;
             } else {
                 id = genId();
-                arg.generated = {id: id};
+                arg.generated = { id: id };
             }
-            attribs = {id: id};
+            attribs = { id: id };
             if (arg.class) {
                 attribs.class = arg.class;
             } else if (arg.classes) {
@@ -328,11 +359,11 @@ define([
             var div = tag('div'),
                 span = tag('span');
 
-            return div({class: 'panel panel-default'}, [
-                div({class: 'panel-heading'}, [
-                    span({class: 'panel-title'}, title)
+            return div({ class: 'panel panel-default' }, [
+                div({ class: 'panel-heading' }, [
+                    span({ class: 'panel-title' }, title)
                 ]),
-                div({class: 'panel-body'}, [
+                div({ class: 'panel-body' }, [
                     content
                 ])
             ]);
@@ -343,11 +374,11 @@ define([
                 span = tag('span'),
                 klass = arg.class || 'default';
 
-            return div({class: 'panel panel-' + klass}, [
-                div({class: 'panel-heading'}, [
-                    span({class: 'panel-title'}, arg.title)
+            return div({ class: 'panel panel-' + klass }, [
+                div({ class: 'panel-heading' }, [
+                    span({ class: 'panel-title' }, arg.title)
                 ]),
-                div({class: 'panel-body'}, [
+                div({ class: 'panel-body' }, [
                     arg.content
                 ])
             ]);
@@ -362,7 +393,7 @@ define([
             }
             return span([
                 prompt,
-                i({class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom'})
+                i({ class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom' })
             ]);
         }
 
@@ -383,10 +414,11 @@ define([
                 return key
                     .replace(/(id|Id)/g, 'ID')
                     .split(/_/g).map(function (word) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                })
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    })
                     .join(' ');
             }
+
             function formatValue(rawValue, column) {
                 if (typeof column === 'string') {
                     return rawValue;
@@ -396,14 +428,14 @@ define([
                 }
                 if (column.type) {
                     switch (column.type) {
-                        case 'bool':
-                            // yuck, use truthiness
-                            if (rawValue) {
-                                return 'True';
-                            }
-                            return 'False';
-                        default:
-                            return rawValue;
+                    case 'bool':
+                        // yuck, use truthiness
+                        if (rawValue) {
+                            return 'True';
+                        }
+                        return 'False';
+                    default:
+                        return rawValue;
                     }
                 }
                 return rawValue;
@@ -414,7 +446,7 @@ define([
                 th = tag('th'),
                 td = tag('td'),
                 id = genId(),
-                attribs = {id: id};
+                attribs = { id: id };
             if (arg.class) {
                 attribs.class = arg.class;
             } else if (arg.classes) {
@@ -446,10 +478,11 @@ define([
                 return key
                     .replace(/(id|Id)/g, 'ID')
                     .split(/_/g).map(function (word) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                })
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    })
                     .join(' ');
             }
+
             function columnValue(row, column) {
                 var rawValue = row[column.key];
                 if (column.format) {
@@ -457,14 +490,14 @@ define([
                 }
                 if (column.type) {
                     switch (column.type) {
-                        case 'bool':
-                            // yuck, use truthiness
-                            if (rawValue) {
-                                return 'True';
-                            }
-                            return 'False';
-                        default:
-                            return rawValue;
+                    case 'bool':
+                        // yuck, use truthiness
+                        if (rawValue) {
+                            return 'True';
+                        }
+                        return 'False';
+                    default:
+                        return rawValue;
                     }
                 }
                 return rawValue;
@@ -474,7 +507,7 @@ define([
                 tr = tag('tr'),
                 th = tag('th'),
                 td = tag('td');
-            return table({class: 'table table-stiped table-bordered'},
+            return table({ class: 'table table-stiped table-bordered' },
                 columns.map(function (column) {
                     return tr([
                         th(columnLabel(column)), data.map(function (row) {
@@ -491,11 +524,11 @@ define([
         function makeObjTable(data, options) {
             var tableData = (data instanceof Array && data) || [data],
                 columns = (options && options.columns) || Object.keys(tableData[0]).map(function (key) {
-                return {
-                    key: key,
-                    label: properCase(key)
-                };
-            }),
+                    return {
+                        key: key,
+                        label: properCase(key)
+                    };
+                }),
                 classes = (options && options.classes) || ['table-striped', 'table-bordered'],
                 table = tag('table'),
                 tr = tag('tr'),
@@ -509,35 +542,34 @@ define([
                 }
                 if (column.type) {
                     switch (column.type) {
-                        case 'bool':
-                            // yuck, use truthiness
-                            if (rawValue) {
-                                return 'True';
-                            }
-                            return 'False';
-                        default:
-                            return rawValue;
+                    case 'bool':
+                        // yuck, use truthiness
+                        if (rawValue) {
+                            return 'True';
+                        }
+                        return 'False';
+                    default:
+                        return rawValue;
                     }
                 }
                 return rawValue;
             }
             if (options && options.rotated) {
-                return table({class: 'table ' + classes.join(' ')},
+                return table({ class: 'table ' + classes.join(' ') },
                     columns.map(function (column) {
                         return tr([
                             th(column.label),
                             tableData.map(function (row) {
-                                return td({dataElement: column.key}, columnValue(row, column));
+                                return td({ dataElement: column.key }, columnValue(row, column));
                             })
                         ]);
                     }));
             }
-            return table({class: 'table ' + classes.join(' ')},
-                [tr(columns.map(function (column) {
-                        return th(column.label);
-                    }))].concat(tableData.map(function (row) {
+            return table({ class: 'table ' + classes.join(' ') }, [tr(columns.map(function (column) {
+                return th(column.label);
+            }))].concat(tableData.map(function (row) {
                 return tr(columns.map(function (column) {
-                    return td({dataElement: column.key}, columnValue(row, column));
+                    return td({ dataElement: column.key }, columnValue(row, column));
                 }));
             })));
         }
@@ -556,10 +588,11 @@ define([
                 return key
                     .replace(/(id|Id)/g, 'ID')
                     .split(/_/g).map(function (word) {
-                    return word.charAt(0).toUpperCase() + word.slice(1);
-                })
+                        return word.charAt(0).toUpperCase() + word.slice(1);
+                    })
                     .join(' ');
             }
+
             function columnValue(row, column) {
                 var rawValue = row[column.key];
                 if (column.format) {
@@ -567,14 +600,14 @@ define([
                 }
                 if (column.type) {
                     switch (column.type) {
-                        case 'bool':
-                            // yuck, use truthiness
-                            if (rawValue) {
-                                return 'True';
-                            }
-                            return 'False';
-                        default:
-                            return rawValue;
+                    case 'bool':
+                        // yuck, use truthiness
+                        if (rawValue) {
+                            return 'True';
+                        }
+                        return 'False';
+                    default:
+                        return rawValue;
                     }
                 }
                 return rawValue;
@@ -614,7 +647,7 @@ define([
                 tr = tag('tr'),
                 th = tag('th'),
                 td = tag('td'),
-                result = table({class: 'table ' + classes.join(' ')},
+                result = table({ class: 'table ' + classes.join(' ') },
                     columns.map(function (column) {
                         return tr([
                             th(columnLabel(column)),
@@ -658,13 +691,14 @@ define([
          * @returns {unresolved}
          */
         function reverse(arr) {
-            var newArray = [], i, len = arr.length;
-            for (i = len-1; i >= 0; i -= 1) {
+            var newArray = [],
+                i, len = arr.length;
+            for (i = len - 1; i >= 0; i -= 1) {
                 newArray.push(arr[i]);
             }
             return newArray;
         }
-        
+
         function makeTabs(arg) {
             var ul = tag('ul'),
                 li = tag('li'),
@@ -673,7 +707,8 @@ define([
                 tabsId = arg.id,
                 tabsAttribs = {},
                 tabClasses = ['nav', 'nav-tabs'],
-                tabs, tabStyle = {}, activeIndex;
+                tabs, tabStyle = {},
+                activeIndex;
 
             if (tabsId) {
                 tabsAttribs.id = tabsId;
@@ -690,7 +725,7 @@ define([
                 activeIndex = 0;
             }
             return div(tabsAttribs, [
-                ul({class: tabClasses.join(' '), role: 'tablist'},
+                ul({ class: tabClasses.join(' '), role: 'tablist' },
                     tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'presentation'
@@ -706,7 +741,7 @@ define([
                             dataToggle: 'tab'
                         }, tab.label));
                     })),
-                div({class: 'tab-content'},
+                div({ class: 'tab-content' },
                     arg.tabs.map(function (tab, index) {
                         var attribs = {
                             role: 'tabpanel',
@@ -721,7 +756,7 @@ define([
                         }
                         return div(attribs, tab.content);
                     })
-                    )
+                )
             ]);
         }
 
