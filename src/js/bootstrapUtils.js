@@ -21,33 +21,33 @@ define([
 
     function buildPresentableJson(data) {
         switch (typeof data) {
-            case 'string':
-                return data;
-            case 'number':
-                return String(data);
-            case 'boolean':
-                return String(data);
-            case 'object':
-                if (data === null) {
-                    return 'NULL';
-                }
-                if (data instanceof Array) {
-                    return table({ class: 'table table-striped' },
-                        data.map(function (datum, index) {
-                            return tr([
-                                th(String(index)),
-                                td(buildPresentableJson(datum))
-                            ]);
-                        }).join('\n')
-                    );
-                }
+        case 'string':
+            return data;
+        case 'number':
+            return String(data);
+        case 'boolean':
+            return String(data);
+        case 'object':
+            if (data === null) {
+                return 'NULL';
+            }
+            if (data instanceof Array) {
                 return table({ class: 'table table-striped' },
-                    Object.keys(data).map(function (key) {
-                        return tr([th(key), td(buildPresentableJson(data[key]))]);
+                    data.map(function (datum, index) {
+                        return tr([
+                            th(String(index)),
+                            td(buildPresentableJson(datum))
+                        ]);
                     }).join('\n')
                 );
-            default:
-                return 'Not representable: ' + (typeof data);
+            }
+            return table({ class: 'table table-striped' },
+                Object.keys(data).map(function (key) {
+                    return tr([th(key), td(buildPresentableJson(data[key]))]);
+                }).join('\n')
+            );
+        default:
+            return 'Not representable: ' + (typeof data);
         }
     }
 

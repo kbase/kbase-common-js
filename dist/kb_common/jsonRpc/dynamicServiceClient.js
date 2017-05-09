@@ -1,7 +1,10 @@
-/* global Promise */
 define([
+    'bluebird',
     './jsonRpc-native'
-], function (jsonRpc) {
+], function (
+    Promise,
+    jsonRpc
+) {
     'use strict';
 
     function Cache(config) {
