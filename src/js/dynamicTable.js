@@ -1,3 +1,4 @@
+/* global saveAs */
 /**
  * A DynamicTable widget.
  * This is a very very lightweight table that uses a callback to set its data based on user actions.
@@ -51,21 +52,24 @@
  */
 define([
     'jquery',
+
+    // for side effect
+    'jquery-ui',
     'bootstrap',
-    'bluebird',
-    'kbase-generic-client-api',
-    'util/display',
-    'util/string',
+    // enables saveAs 
     'fileSaver'
-], function(
-    $,
-    Bootstrap,
-    Promise,
-    GenericClient,
-    Display,
-    StringUtil,
-    FileSaver  //enables the saveAs function.
+], function (
+    $
 ) {
+    'use strict';
+
+    // copied from narrative display.js
+    function simpleButton(sizeClass, iconClass) {
+        return $('<button>')
+            .addClass('btn btn-default ' + sizeClass)
+            .append($('<span>').addClass(iconClass));
+    }
+
     var DynamicTable = function (elem, options) {
         this.options = {
             class: '',
@@ -108,7 +112,7 @@ define([
      * This doesn't actually set the data or anything, it just inits the various
      * DOM elements and events.
      */
-    DynamicTable.prototype.initialize = function(elem) {
+    DynamicTable.prototype.initialize = function (elem) {
         this.$container = $('<div>').addClass('container-fluid ' + this.options.class);
         this.$container.css(this.options.style);
 
@@ -133,40 +137,39 @@ define([
      * Builds the footer for the whole widget, sits below the table.
      * Just shows what rows are visible right now.
      */
-    DynamicTable.prototype.makeWidgetFooter = function() {
-        // var dropdownId = 'dtable-' + StringUtil.uuid();
+    DynamicTable.prototype.makeWidgetFooter = function () {
         this.$shownText = $('<span></span>');
         var $footer = $('<div class="row">')
-                      .append($('<div class="col-md-6">')
-                              .append(this.$shownText));
+            .append($('<div class="col-md-6">')
+                .append(this.$shownText));
 
         if (this.options.enableDownload) {
             var self = this;
-            var csvRows = function(data) {
+            var csvRows = function (data) {
                 var headerNames = [];
-                self.headers.forEach(function(h) {
+                self.headers.forEach(function (h) {
                     headerNames.push(h.text);
                 });
                 data.unshift(headerNames);
-                return data.map(function(row) {
+                return data.map(function (row) {
                     return row.join(',') + '\n';
                 });
             };
-            var $dlBtn = Display.simpleButton('btn-md btn-default dropdown-toggle', 'fa fa-download')
-                .click(function() {
+            var $dlBtn = simpleButton('btn-md btn-default dropdown-toggle', 'fa fa-download')
+                .click(function () {
                     saveAs(new Blob(csvRows(self.currentData)), self.options.downloadFileName);
                 });
-            var $dlAllBtn = Display.simpleButton('btn-md btn-default dropdown-toggle', 'fa fa-cloud-download')
-                .click(function() {
+            var $dlAllBtn = simpleButton('btn-md btn-default dropdown-toggle', 'fa fa-cloud-download')
+                .click(function () {
                     self.options.downloadAllDataFunction(self.currentSort.id, self.currentSort.sortState)
-                    .then(function(data) {
-                        saveAs(new Blob(csvRows(data)), self.options.downloadFileName);
-                    });
+                        .then(function (data) {
+                            saveAs(new Blob(csvRows(data)), self.options.downloadFileName);
+                        });
                 });
             $footer.append($('<div class="col-md-6">')
-                           .append($('<div class="pull-right">')
-                                   .append($dlBtn)
-                                   .append($dlAllBtn)));
+                .append($('<div class="pull-right">')
+                    .append($dlBtn)
+                    .append($dlAllBtn)));
         }
         return $footer;
     };
@@ -176,53 +179,53 @@ define([
      * This includes L/R buttons for table pagination, a hideable spinner for loading,
      * and a search element.
      */
-    DynamicTable.prototype.makeWidgetHeader = function() {
+    DynamicTable.prototype.makeWidgetHeader = function () {
         var self = this;
-        var $leftBtn = Display.simpleButton('btn-md', 'fa fa-caret-left')
-                       .click(function() {
-                           var curP = self.currentPage;
-                           if (self.getPrevPage() !== curP) {
-                               self.getNewData();
-                           }
-                       });
-        var $rightBtn = Display.simpleButton('btn-md', 'fa fa-caret-right')
-                        .click(function() {
-                            var curP = self.currentPage;
-                            if (self.getNextPage() !== curP) {
-                                self.getNewData();
-                            }
-                        });
+        var $leftBtn = simpleButton('btn-md', 'fa fa-caret-left')
+            .click(function () {
+                var curP = self.currentPage;
+                if (self.getPrevPage() !== curP) {
+                    self.getNewData();
+                }
+            });
+        var $rightBtn = simpleButton('btn-md', 'fa fa-caret-right')
+            .click(function () {
+                var curP = self.currentPage;
+                if (self.getNextPage() !== curP) {
+                    self.getNewData();
+                }
+            });
         var $pageBtns = $('<div class="col-md-4">')
-                        .append($leftBtn)
-                        .append($rightBtn);
+            .append($leftBtn)
+            .append($rightBtn);
 
         self.$loadingElement = $('<div>')
-                               .attr('align', 'center')
-                               .append($('<i>').addClass('fa fa-spinner fa-spin fa-2x'))
-                               .hide();
+            .attr('align', 'center')
+            .append($('<i>').addClass('fa fa-spinner fa-spin fa-2x'))
+            .hide();
         var $loadingDiv = $('<div class="col-md-4">').append(self.$loadingElement);
 
         var $searchElement = $('<input>')
-                             .attr('type', 'text')
-                             .addClass('form-control')
-                             .attr('placeholder', self.options.searchPlaceholder)
-                             .on('keyup', function() {
-                                 self.currentQuery = $.trim($searchElement.val());
-                                 self.currentPage = 0;
-                                 self.getNewData();
-                             });
+            .attr('type', 'text')
+            .addClass('form-control')
+            .attr('placeholder', self.options.searchPlaceholder)
+            .on('keyup', function () {
+                self.currentQuery = $.trim($searchElement.val());
+                self.currentPage = 0;
+                self.getNewData();
+            });
         var $searchDiv = $('<div class="col-md-4 pull-right">').append($searchElement);
 
         return $('<div class="row" style="margin-bottom: 5px">')
-                .append($pageBtns)
-                .append($loadingDiv)
-                .append($searchDiv);
+            .append($pageBtns)
+            .append($loadingDiv)
+            .append($searchDiv);
     };
 
     /**
      * Updates the current page to the previous one, as long as it's >= 0.
      */
-    DynamicTable.prototype.getPrevPage = function() {
+    DynamicTable.prototype.getPrevPage = function () {
         this.currentPage--;
         if (this.currentPage < 0) {
             this.currentPage = 0;
@@ -234,7 +237,7 @@ define([
      * Updates the current page to the next one, if available.
      * If not, nothing changes.
      */
-    DynamicTable.prototype.getNextPage = function() {
+    DynamicTable.prototype.getNextPage = function () {
         this.currentPage++;
         if (this.currentPage * this.rowsPerPage >= this.total) {
             this.currentPage--;
@@ -246,20 +249,20 @@ define([
      * This fetches a new set of data, by firing the updateFunction
      * with the current table state, including page, etc.
      */
-    DynamicTable.prototype.getNewData = function() {
+    DynamicTable.prototype.getNewData = function () {
         this.$loadingElement.show();
         this.options.updateFunction(this.currentPage,
-                                    this.currentQuery,
-                                    this.currentSort.id,
-                                    this.currentSort.sortState)
-            .then(function(data) {
+                this.currentQuery,
+                this.currentSort.id,
+                this.currentSort.sortState)
+            .then(function (data) {
                 this.update(data);
             }.bind(this))
-            .catch(function(error) {
+            .catch(function (error) {
                 alert('error!');
                 console.error(error);
             })
-            .finally(function() {
+            .finally(function () {
                 this.$loadingElement.hide();
             }.bind(this));
     };
@@ -269,23 +272,22 @@ define([
      * This makes each th element bold (with the given header.text value), and adds a sort
      * button if necessary.
      */
-    DynamicTable.prototype.makeTableHeader = function(header) {
+    DynamicTable.prototype.makeTableHeader = function (header) {
         var $header = $('<th>').append($('<b>').append(header.text));
         header.sortState = 0;
         if (header.isSortable) {
             // add sorting.
-            var $sortBtn = Display.simpleButton('btn-xs', 'fa fa-sort text-muted').addClass('pull-right');
-            $sortBtn.click(function() {
+            var $sortBtn = simpleButton('btn-xs', 'fa fa-sort text-muted').addClass('pull-right');
+            $sortBtn.click(function () {
                 // reset all other sort buttons
                 var curState = header.sortState;
-                this.headers.forEach(function(h) {
+                this.headers.forEach(function (h) {
                     h.sortState = 0;
                 });
                 // set this one to sort. if up, then down, if down then up, if neither then up
                 if (curState < 1) {
                     header.sortState = 1;
-                }
-                else {
+                } else {
                     header.sortState = -1;
                 }
                 this.currentSort = header;
@@ -306,28 +308,27 @@ define([
      * If this DynamicTable was initialized with a decoration on each column, those columns have
      * their decoration applied to them as well, and linked to the clickFunction.
      */
-    DynamicTable.prototype.setData = function(data) {
+    DynamicTable.prototype.setData = function (data) {
         // list of lists. Empty it out, then put it in place in the given order.
         this.currentData = data;
         this.$tBody.empty();
-        data.forEach(function(row) {
+        data.forEach(function (row) {
             // decorate each row element as necessary
             var renderedRow = row.slice(); // make a copy by value
-            this.options.decoration.forEach(function(dec) {
+            this.options.decoration.forEach(function (dec) {
                 if (dec.type == 'link') {
                     renderedRow[dec.col] = '<a style="cursor:pointer">' + renderedRow[dec.col] + '</a>';
-                }
-                else if (dec.type == 'button') {
+                } else if (dec.type == 'button') {
                     renderedRow[dec.col] = '<button class="btn btn-default btn-sm">' + renderedRow[dec.col] + '</button>';
                 }
             });
             // build the table row elem
             var $newRow = tableRow(renderedRow);
             // add click bindings to decorated elements
-            this.options.decoration.forEach(function(dec) {
+            this.options.decoration.forEach(function (dec) {
                 if (dec.clickFunction) {
                     var $clickElem = $newRow.find('td:eq(' + dec.col + ') > :eq(0)');
-                    $clickElem.click(function() {
+                    $clickElem.click(function () {
                         dec.clickFunction($clickElem.text());
                     });
                 }
@@ -346,9 +347,9 @@ define([
      * start = int, the index of the first value, compared to the total available data
      * total = int, the total available rows (not just in this view)
      */
-    DynamicTable.prototype.update = function(data) {
+    DynamicTable.prototype.update = function (data) {
         // update header sort buttons
-        this.headers.forEach(function(h, idx) {
+        this.headers.forEach(function (h, idx) {
             if (h.isSortable) {
                 var newClass = 'fa-sort text-muted';
                 if (h.sortState == 1) {
@@ -368,7 +369,7 @@ define([
         this.start = data.start;
         this.end = data.start + data.rows.length;
         this.total = data.total;
-        this.$shownText.text('Showing ' + (this.start+1) + ' to ' + this.end + ' of ' + this.total);
+        this.$shownText.text('Showing ' + (this.start + 1) + ' to ' + this.end + ' of ' + this.total);
         //  + ' on page ' + this.currentPage);
     };
 
@@ -381,10 +382,10 @@ define([
      *     <td>123</td>
      * </tr>
      */
-    var tableRow = function(data) {
+    var tableRow = function (data) {
         var elem = 'td';
         return $('<tr>').append(
-            data.map(function(d) {
+            data.map(function (d) {
                 return '<' + elem + '>' + d + '</' + elem + '>';
             }).join()
         );
