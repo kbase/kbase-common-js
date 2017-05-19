@@ -1,10 +1,10 @@
 /*global define: true */
 /*jslint browser:true  vars: true */
 define([
-    'bluebird',
-    './asyncQueue',
-    './lang'
-],
+        'bluebird',
+        './asyncQueue',
+        './lang'
+    ],
     function (Promise, asyncQueue, lang) {
         function factory(config) {
             // Very simple message system.
@@ -17,9 +17,11 @@ define([
                 subId += 1;
                 return 'sub_' + subId;
             }
+
             function fail(msg) {
                 throw new Error(msg);
             }
+
             function receive(subDef) {
                 var channelName = subDef.chan || subDef.channel || 'default',
                     messageName = subDef.msg || subDef.message || fail('Message is required for a sub');
@@ -54,6 +56,7 @@ define([
                     id: subId
                 };
             }
+
             function unreceive(sub) {
                 var channel = channels[sub.chan];
                 if (!channel) {
@@ -82,6 +85,7 @@ define([
             function emptyPromiseList() {
                 return [Promise.resolve()];
             }
+
             function send(pubDef) {
                 var channelName = pubDef.chan || pubDef.channel,
                     messageName = pubDef.msg || pubDef.message;
@@ -113,8 +117,9 @@ define([
                                 }
                             }
                         });
-                });
+                    });
             }
+
             function sendPromise(pubDef) {
                 var channelName = pubDef.chan || pubDef.channel,
                     messageName = pubDef.msg || pubDef.message;
@@ -130,6 +135,7 @@ define([
                     if (pubDef.propogate) {
                         return emptyPromiseList();
                     }
+                    // console.log('should handle this...', messageName);
                 }
 
                 var listeners = messageListener.listeners;
@@ -166,7 +172,6 @@ define([
                 sendPromise: sendPromise
             };
         }
-        ;
 
         return {
             make: function (config) {
