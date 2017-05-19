@@ -63,14 +63,15 @@ define([], function () {
             /* TODO: do something on overlapping routes */
             /* TODO: better mapping method for routes. */
             /* still, with a relatively short list of routes, this is far from a performance issue. */
-            
+
             // fix up the path. This business is to make it easier to have
             // compact path specifications.
-            var path = pathSpec.path, fixedPath;
+            var path = pathSpec.path,
+                fixedPath;
             if (typeof path === 'string') {
                 path = [path];
             }
-            pathSpec.path =  path.map(function (pathElement) {
+            pathSpec.path = path.map(function (pathElement) {
                 if (typeof pathElement === 'string') {
                     return {
                         type: 'literal',
@@ -144,7 +145,7 @@ define([], function () {
                         return decodeURIComponent(pathComponent);
                     });
             }
-            
+
             return {
                 original: hash,
                 path: path,
@@ -153,7 +154,7 @@ define([], function () {
         }
 
         function findRoute(req) {
-            var foundRoute, i, j, route, params,  
+            var foundRoute, i, j, route, params,
                 requestPathElement, routePathElement,
                 allowableParams;
             // No route at all? Return the default route.
@@ -164,57 +165,57 @@ define([], function () {
                     route: defaultRoute
                 };
             }
-            routeloop:              
-            for (i = 0; i < routes.length; i += 1) {
-                route = routes[i];
-                params = {};
-                
-                // We can use a route which is longer than the path if it has 
-                // optional params at the end.
-                if (route.path.length > req.path.length) {
-                    if (!req.path.slice(route.path.length).every(function (routePathElement) {
-                        return routePathElement.optional;
-                    })) {
+            routeloop:
+                for (i = 0; i < routes.length; i += 1) {
+                    route = routes[i];
+                    params = {};
+
+                    // We can use a route which is longer than the path if it has 
+                    // optional params at the end.
+                    if (route.path.length > req.path.length) {
+                        if (!req.path.slice(route.path.length).every(function (routePathElement) {
+                                return routePathElement.optional;
+                            })) {
+                            continue routeloop;
+                        }
+                    } else if (route.path.length < req.path.length) {
                         continue routeloop;
                     }
-                } else if (route.path.length < req.path.length) {
-                    continue routeloop;
-                }
-                
-                pathloop:
-                for (j = 0; j < req.path.length; j += 1) {
-                    routePathElement = route.path[j];
-                    requestPathElement = req.path[j];
-                    switch (routePathElement.type) {
-                        case 'literal': 
-                            if (routePathElement.value !== requestPathElement) {
-                                continue routeloop;
-                            }
-                            break;
-                        case 'options':
-                             if (!routePathElement.value.some(function (option) {
-                                if (requestPathElement === option) {
-                                    return true;
+
+                    pathloop:
+                        for (j = 0; j < req.path.length; j += 1) {
+                            routePathElement = route.path[j];
+                            requestPathElement = req.path[j];
+                            switch (routePathElement.type) {
+                            case 'literal':
+                                if (routePathElement.value !== requestPathElement) {
+                                    continue routeloop;
                                 }
-                            })) {
-                                continue routeloop;
+                                break;
+                            case 'options':
+                                if (!routePathElement.value.some(function (option) {
+                                        if (requestPathElement === option) {
+                                            return true;
+                                        }
+                                    })) {
+                                    continue routeloop;
+                                }
+                                break;
+                            case 'param':
+                                params[routePathElement.name] = requestPathElement;
+                                break;
                             }
-                            break;
-                        case 'param':
-                            params[routePathElement.name] = requestPathElement;
-                            break;
-                    }
+                        }
+                        // First found route wins
+                        // TODO: fix this?
+                    foundRoute = {
+                        request: req,
+                        params: params,
+                        route: route
+                    };
+                    break routeloop;
                 }
-                // First found route wins
-                // TODO: fix this?
-                foundRoute = {
-                    request: req,
-                    params: params,
-                    route: route
-                };
-                break routeloop;
-            }
-            // The total params is the path params and query params
+                // The total params is the path params and query params
             if (foundRoute) {
                 allowableParams = foundRoute.route.queryParams || {};
                 Object.keys(req.query).forEach(function (key) {
@@ -233,6 +234,7 @@ define([], function () {
             }
             return foundRoute;
         }
+
         function findCurrentRoute() {
             var req = getCurrentRequest();
             return findRoute(req);
@@ -258,7 +260,7 @@ define([], function () {
                 return key + '=' + encodeURIComponent(params[key]);
             }).join('&');
         }
-        
+
         function navigateToPath(location) {
             var providedPath, normalizedPath, queryString, finalPath;
             if (typeof location.path === 'string') {
@@ -302,14 +304,19 @@ define([], function () {
                 }
             }
         }
-       
+
 
         function navigateTo(location) {
             //if (window.history.pushState) {
             //    window.history.pushState(null, '', '#' + location);
             //} else {
+            if (!location) {
+                location = {
+                    path: defaultRoute
+                };
+            }
             if (typeof location === 'string') {
-                location = {path: location};
+                location = { path: location };
             }
             if (location.path !== undefined) {
                 navigateToPath(location);
@@ -317,9 +324,11 @@ define([], function () {
                 throw new Error('Invalid navigation location -- no path');
             }
         }
+
         function replacePath(location) {
             window.location.replace(location);
         }
+
         function redirectTo(location, newWindow) {
             if (newWindow) {
                 window.open(location);
