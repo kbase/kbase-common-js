@@ -193,7 +193,6 @@ define([
         collapseTarget.setAttribute('aria-expanded', 'true');
     }
 
-
     function reverse(arr) {
         var newArray = [],
             i, len = arr.length;
@@ -273,7 +272,10 @@ define([
                             dataPanelId: tab.panelId,
                             dataToggle: 'tab'
                         },
-                        icon, label = span({ dataElement: 'label' }, tab.label);
+                        // nb accept label or title for the tab label. Title is more in line
+                        // with the panel builder, and this makes conversion easier.
+                        icon,
+                        label = span({ dataElement: 'label' }, tab.label || tab.title);
                     if (tab.icon) {
                         icon = buildIcon({ name: tab.icon });
                     } else {
@@ -303,7 +305,8 @@ define([
                     if (index === 0) {
                         attribs.class += ' active';
                     }
-                    return div(attribs, tab.content);
+                    // ditto on accepting content or body.
+                    return div(attribs, tab.content || tab.body);
                 }))
         ]);
         return {
