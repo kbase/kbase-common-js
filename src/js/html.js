@@ -1,14 +1,8 @@
-/*global
- define
- */
-/*jslint
- browser: true,
- white: true
- */
 define([
-    'underscore',
     'uuid'
-], function (underscore, Uuid) {
+], function (
+    Uuid
+) {
     'use strict';
     return (function () {
 
@@ -222,13 +216,13 @@ define([
 
         function renderContent(children) {
             if (children) {
-                if (underscore.isString(children)) {
+                if (typeof children === 'string') {
                     return children;
                 }
-                if (underscore.isNumber(children)) {
+                if (typeof children === 'number') {
                     return String(children);
                 }
-                if (underscore.isArray(children)) {
+                if (children instanceof Array) {
                     return children.map(function (item) {
                         return renderContent(item);
                     }).join('');
@@ -268,26 +262,26 @@ define([
             }
             var tagFun = function (attribs, children) {
                 var node = '<' + tagName;
-                if (underscore.isArray(attribs)) {
+                if (attribs instanceof Array) {
                     // skip attribs, just go to children.
                     children = attribs;
                     attribs = null;
-                } else if (underscore.isString(attribs)) {
+                } else if (typeof attribs === 'string') {
                     // skip attribs, just go to children.
                     children = attribs;
                     attribs = null;
-                } else if (underscore.isNull(attribs) || underscore.isUndefined(attribs)) {
+                } else if (attribs === null || attribs === undefined) {
                     if (!children) {
                         children = '';
                     }
-                } else if (underscore.isObject(attribs)) {
+                } else if (typeof attribs === 'object') {
                     if (options.attribs) {
                         attribs = merge(merge({}, options.attribs), attribs);
                     }
-                } else if (underscore.isNumber(attribs)) {
+                } else if (typeof attribs === 'number') {
                     children = String(attribs);
                     attribs = null;
-                } else if (underscore.isBoolean(attribs)) {
+                } else if (typeof attribs === 'boolean') {
                     if (attribs) {
                         children = 'true';
                     } else {
@@ -658,10 +652,10 @@ define([
         }
 
         function flatten(html) {
-            if (underscore.isString(html)) {
+            if (typeof html === 'string') {
                 return html;
             }
-            if (underscore.isArray(html)) {
+            if (html instanceof Array) {
                 return html.map(function (h) {
                     return flatten(h);
                 }).join('');
@@ -670,7 +664,7 @@ define([
         }
 
         function makeList(arg) {
-            if (underscore.isArray(arg.items)) {
+            if (arg.items instanceof Array) {
                 var ul = tag('ul'),
                     li = tag('li');
                 return ul(arg.items.map(function (item) {

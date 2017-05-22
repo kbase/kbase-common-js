@@ -1,5 +1,3 @@
-/*global define */
-/*jslint white:true,browser:true,jsnomen:true*/
 define([
     './jsonRpc-native'
 ], function (jsonRpc) {
@@ -19,7 +17,7 @@ define([
         // Establish an auth object which has properties token and user_id.
         var module = arg.module;
         var token = arg.token || (arg.auth ? arg.auth.token : null);
-        
+
         if (!arg.url) {
             throw new Error('The service url was not provided');
         }
@@ -38,7 +36,7 @@ define([
             };
         }
 
-        this.callFunc = function(funcName, params) {
+        this.callFunc = function (funcName, params) {
             return jsonRpc.request(arg.url, module, funcName, params, options());
         };
     }
