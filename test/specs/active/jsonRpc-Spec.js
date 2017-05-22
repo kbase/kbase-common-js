@@ -1,5 +1,5 @@
 /* eslint-env browser, jasmine, amd */
-/* globals browser, jasmin, amd */
+/* globals browser, jasmine, amd */
 define([
     'kb_common/jsonRpc/genericClient',
     'kb_common/jsonRpc/exceptions',
