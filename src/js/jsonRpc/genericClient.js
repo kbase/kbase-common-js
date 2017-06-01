@@ -14,16 +14,12 @@ define([
      * rpcContext
      */
     function GenericClient(arg) {
-        // Establish an auth object which has properties token and user_id.
         var module = arg.module;
         var token = arg.token || (arg.auth ? arg.auth.token : null);
 
         if (!arg.url) {
             throw new Error('The service url was not provided');
         }
-        // if (!arg.version) {
-        //     throw new Error('The service version was not provided');
-        // }
         if (!module) {
             throw new Error('The service module was not provided');
         }
