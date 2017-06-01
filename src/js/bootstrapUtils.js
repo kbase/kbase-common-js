@@ -132,6 +132,7 @@ define([
             classes = ['panel', 'panel-' + type],
             collapseClasses = ['panel-collapse collapse'],
             toggleClasses = [],
+            style = args.style || {},
             icon;
         if (args.hidden) {
             classes.push('hidden');
@@ -147,7 +148,11 @@ define([
         if (args.icon) {
             icon = [' ', buildIcon(args.icon)];
         }
-        return div({ class: classes.join(' '), dataElement: args.name }, [
+        return div({
+            class: classes.join(' '),
+            dataElement: args.name,
+            style: style
+        }, [
             div({ class: 'panel-heading' }, [
                 div({ class: 'panel-title' }, span({
                     dataElement: 'title',
