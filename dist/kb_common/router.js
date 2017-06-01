@@ -268,6 +268,7 @@ define([], function () {
             } else if (location.path instanceof Array) {
                 providedPath = location.path;
             } else {
+                console.error('Invalid path in location', location);
                 throw new Error('Invalid path in location');
             }
             // we eliminate empty path components, like extra slashes, or an initial slash.
@@ -311,15 +312,16 @@ define([], function () {
             //    window.history.pushState(null, '', '#' + location);
             //} else {
             if (!location) {
-                location = {
-                    path: defaultRoute
-                };
+                location = defaultRoute;
             }
             if (typeof location === 'string') {
                 location = { path: location };
             }
+
             if (location.path !== undefined) {
                 navigateToPath(location);
+            } else if (typeof location.redirect === 'string') {
+                redirectTo(location.redirect);
             } else {
                 throw new Error('Invalid navigation location -- no path');
             }
