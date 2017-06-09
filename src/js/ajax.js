@@ -116,7 +116,10 @@ define([
                 reject(new AbortException('Request was aborted', xhr));
             };
 
-            xhr.timeout = options.timeout || 60000;
+            if (options.responseType) {
+                xhr.responseType = options.responseType;
+            }
+
             try {
                 xhr.open('POST', options.url, true);
             } catch (ex) {
@@ -124,17 +127,14 @@ define([
             }
 
             try {
+                xhr.timeout = options.timeout || 60000;
 
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
                     });
                 }
-                if (options.responseType) {
-                    xhr.responseType = options.responseType;
-                }
                 xhr.withCredentials = options.withCredentials || false;
-
                 // We support two types of data to send ... strings or int (byte) buffers
                 if (typeof options.data === 'string') {
                     xhr.send(options.data);

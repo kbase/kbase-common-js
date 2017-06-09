@@ -5,8 +5,7 @@ define([
     './exceptions'
 ], function (Promise, exceptions) {
     'use strict';
-    
-    
+
     function post(options) {
         var timeout = options.timeout || 60000,
             startTime = new Date();
@@ -28,7 +27,7 @@ define([
                         reject(ex);
                     }
                 }
-            };            
+            };
             xhr.ontimeout = function () {
                 var elapsed = (new Date()) - startTime;
                 reject(new exceptions.TimeoutError(timeout, elapsed, 'Request timeout', xhr));
@@ -42,24 +41,24 @@ define([
             //xhr.onloadend = function () {
             //};
 
-            xhr.timeout = options.timeout || 60000;
+            if (options.responseType) {
+                xhr.responseType = options.responseType;
+            }
             try {
                 xhr.open('POST', options.url, true);
             } catch (ex) {
                 reject(new exceptions.GeneralError('Error opening request', xhr));
             }
 
-            try {                
+            try {
+                xhr.timeout = options.timeout || 60000;
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
                     });
                 }
-                if (options.responseType) {
-                    xhr.responseType = options.responseType;
-                }
                 xhr.withCredentials = options.withCredentials || false;
-                
+
                 // We support two types of data to send ... strings or int (byte) buffers
                 if (typeof options.data === 'string') {
                     xhr.send(options.data);
@@ -73,7 +72,7 @@ define([
             }
         });
     }
-    
+
     function get(options) {
         var timeout = options.timeout || 60000,
             startTime = new Date();
@@ -85,7 +84,7 @@ define([
                 }
                 if (xhr.status >= 500) {
                     reject(new exceptions.ServerError(xhr.status, 'Server Error', xhr));
-                }                
+                }
                 if (xhr.status >= 300 && xhr.status < 400) {
                     reject(new Error('Redirects not currently supported'));
                 }
@@ -96,7 +95,7 @@ define([
                     reject(ex);
                 }
             };
-            
+
             xhr.ontimeout = function () {
                 var elapsed = (new Date()) - startTime;
                 reject(new exceptions.TimeoutError(timeout, elapsed, 'Request timeout', xhr));
@@ -108,7 +107,10 @@ define([
                 reject(new exceptions.AbortError('Request was aborted', xhr));
             };
 
-            xhr.timeout = options.timeout || 60000;
+            if (options.responseType) {
+                xhr.responseType = options.responseType;
+            }
+            console.log('about to open');
             try {
                 xhr.open('GET', options.url, true);
             } catch (ex) {
@@ -116,17 +118,16 @@ define([
             }
 
             try {
-                
+                console.log('about to set timeout');
+                xhr.timeout = options.timeout || 60000;
+
                 if (options.header) {
                     Object.keys(options.header).forEach(function (key) {
                         xhr.setRequestHeader(key, options.header[key]);
                     });
                 }
-                if (options.responseType) {
-                    xhr.responseType = options.responseType;
-                }
                 xhr.withCredentials = options.withCredentials || false;
-                
+
                 // We support two types of data to send ... strings or int (byte) buffers
                 xhr.send();
             } catch (ex) {
