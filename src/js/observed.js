@@ -34,17 +34,18 @@
  */
 
 define([
-    './utils', 
-    './asyncQueue', 
+    './utils',
+    './asyncQueue',
     'bluebird'
 ], function (Utils, fAsyncQueue, Promise) {
     "use strict";
+
     function factory() {
-        
+
         var state = {},
             listeners = {},
             queue = fAsyncQueue.make();
-        
+
         /**
          * Sets a state object for the given property path.
          * The setting of a state object may trigger listener callbacks.
@@ -71,8 +72,6 @@ define([
                                     fun(value, oldvalue);
                                 } catch (ex) {
                                     //TODO: need a sensible way to manage exception reporting.
-                                    //console.log('EX running onrun handler');
-                                    //console.log(ex);
                                 }
                             };
                         }(item.onSet, value, (oldState && oldState.value)))
@@ -83,10 +82,10 @@ define([
                 });
                 listeners[key] = newListeners;
             }
-            Utils.setProp(state, key, {status: 'set', value: value, time: new Date()});
+            Utils.setProp(state, key, { status: 'set', value: value, time: new Date() });
             return this;
         }
-        
+
         function modifyItem(key, modifier) {
             var oldState = Utils.getProp(state, key),
                 newValue = modifier(oldState.value),
@@ -113,7 +112,7 @@ define([
                 listeners[key] = newListeners;
             }
 
-            Utils.setProp(state, key, {status: 'set', value: newValue, time: new Date()});
+            Utils.setProp(state, key, { status: 'set', value: newValue, time: new Date() });
             return this;
         }
 
@@ -161,7 +160,7 @@ define([
         function hasItem(key) {
             return Utils.hasProp(state, key);
         }
-        
+
         /**
          * Sets a state property into an error state.
          * This should be called when an attempt to obtain the state value 
@@ -183,7 +182,7 @@ define([
          */
         function setError(key, err) {
             var newListeners = [];
-            if (listeners[key]) {                
+            if (listeners[key]) {
                 listeners[key].forEach(function (item) {
                     queue.addItem({
                         onRun: (function (fun, err) {
@@ -204,7 +203,7 @@ define([
                 });
                 listeners[key] = newListeners;
             }
-            Utils.setProp(state, key, {status: 'error', error: err, time: new Date()});
+            Utils.setProp(state, key, { status: 'error', error: err, time: new Date() });
         }
 
         /**
@@ -226,7 +225,7 @@ define([
             }
             return false;
         }
-        
+
         /**
          * Delete a state property.
          * 
@@ -247,7 +246,7 @@ define([
                 Utils.deleteProp(state, key);
             }
         }
-        
+
         /**
          * A short synonym for listenForItem.
          * 
@@ -259,7 +258,7 @@ define([
         function listen(key, cfg) {
             return listenForItem(key, cfg);
         }
-        
+
         /**
          * Set up a listener for changes to a state property.
          * The listener may be configured to receive set, error, or delete
@@ -280,10 +279,10 @@ define([
             // A cheap call supplies just a function.
             //TODO: really support this?
             if (typeof cfg === 'function') {
-                cfg = {onSet: cfg};
+                cfg = { onSet: cfg };
             }
             // If the item is available, provide immediate callback.
-            
+
             // TODO: We should probably not have any immediate callback -- 
             // rather just queue this up.
             var item = Utils.getProp(state, key);
@@ -306,13 +305,13 @@ define([
                     }
                 }
             }
-            
+
             if (listeners[key] === undefined) {
                 listeners[key] = [];
             }
             listeners[key].push(cfg);
         }
-        
+
         /**
          * This differs from listen in that it returns a promise that is 
          * fulfilled either now (the item is available) or when it is
@@ -356,7 +355,7 @@ define([
             }
             return p;
         }
-        
+
         return {
             setItem: setItem,
             modifyItem: modifyItem,
@@ -367,7 +366,7 @@ define([
             hasItem: hasItem
         };
     }
-    
+
     return {
         make: function (config) {
             return factory(config);

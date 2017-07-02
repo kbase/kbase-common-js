@@ -875,7 +875,7 @@ define([
             };
         }
 
-      
+
 
         function buildGridTable(arg) {
             return arg.table.map(function (row) {
@@ -911,10 +911,8 @@ define([
                     if (key === '_attrib') {
                         Object.keys(value).forEach(function (attribKey) {
                             var attribValue = value[attribKey];
-                            // console.log('attrib?', attribKey, attribValue);
                             switch (attribKey) {
                             case 'hidden':
-                                // console.log('HIDING?', attribKey, node, attribValue);
                                 if (attribValue) {
                                     node.classList.add('hidden');
                                 } else {
