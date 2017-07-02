@@ -8,7 +8,7 @@ define([
     'use strict';
 
     function request(url, module, func, params, options) {
-        // Argh -- a poor man's json rpc.
+        // Aye -- a poor man's json rpc.
         var rpc = {
                 params: params,
                 method: module + '.' + func,

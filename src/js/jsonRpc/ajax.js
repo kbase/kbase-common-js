@@ -10,7 +10,7 @@ define([
         var timeout = options.timeout || 60000,
             startTime = new Date();
 
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (resolve, reject, onCancel) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 if (xhr.status >= 300 && xhr.status < 400) {
@@ -40,6 +40,12 @@ define([
             };
             //xhr.onloadend = function () {
             //};
+
+            if (onCancel) {
+                onCancel(function () {
+                    xhr.abort();
+                });
+            }
 
             if (options.responseType) {
                 xhr.responseType = options.responseType;
@@ -110,7 +116,6 @@ define([
             if (options.responseType) {
                 xhr.responseType = options.responseType;
             }
-            console.log('about to open');
             try {
                 xhr.open('GET', options.url, true);
             } catch (ex) {
@@ -118,7 +123,6 @@ define([
             }
 
             try {
-                console.log('about to set timeout');
                 xhr.timeout = options.timeout || 60000;
 
                 if (options.header) {
