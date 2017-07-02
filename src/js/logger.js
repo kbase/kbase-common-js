@@ -20,8 +20,7 @@ define([], function () {
      */
     var Logger = Object.create({}, {
         init: {
-            value: function (cfg) {
-            }
+            value: function (cfg) {}
         },
         log: {
             value: function (msg) {
@@ -31,22 +30,22 @@ define([], function () {
                     outputter = null,
                     prefix;
                 switch (type) {
-                    case 'ERROR':
-                        outputter = 'error';
-                        break;
-                    case 'WARNING':
-                        outputter = 'warn';
-                        break;
-                    case 'INFO':
-                        outputter = 'info';
-                        break;
-                    case 'DEBUG':
-                        outputter = 'debug';
-                        break;
-                    default:
-                        label = type;
-                        outputter = console.log;
-                        console.log('WARNING: invalid log type: ' + msg.type);
+                case 'ERROR':
+                    outputter = 'error';
+                    break;
+                case 'WARNING':
+                    outputter = 'warn';
+                    break;
+                case 'INFO':
+                    outputter = 'info';
+                    break;
+                case 'DEBUG':
+                    outputter = 'debug';
+                    break;
+                default:
+                    label = type;
+                    outputter = 'log';
+                    console.warn('WARNING: invalid log type: ' + msg.type);
                 }
 
                 if (label) {

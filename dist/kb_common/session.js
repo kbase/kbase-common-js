@@ -3,8 +3,8 @@ define([
     'bluebird',
     './cookie'
 ], function (
-    $, 
-    Promise, 
+    $,
+    Promise,
     Cookie) {
     'use strict';
 
@@ -200,18 +200,15 @@ define([
             if (sessionObject) {
                 var cookieString = makeSessionCookie();
                 cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/');
-                //console.log('setting cookie on kbase.us...');
                 if (extraCookies) {
                     extraCookies.forEach(function (extraCookie) {
                         cookieManager.setItem(extraCookie.name, cookieString, cookieMaxAge, '/', extraCookie.domain);
                     });
                 }
-                //cookieManager.setItem(cookieName, cookieString, cookieMaxAge, '/', '.kbase.us');
                 var kbaseSession = makeKbaseSession();
                 // This is for compatability with the current state of the narrative ui, which uses this
                 // as a flag for being authenticated.
                 kbaseSession.success = 1;
-                // localStorage.setItem(cookieName, JSON.stringify(kbaseSession));
             }
         }
 
