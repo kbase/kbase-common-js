@@ -15,7 +15,9 @@ define([
                 version: '1.1',
                 id: options.id || String(Math.random()).slice(2)
             },
-            header = {};
+            header = {
+                'Content-Type': 'application/json'
+            };
 
         if (options.rpcContext) {
             rpc.context = options.rpcContext;

@@ -119,27 +119,15 @@ define([
          * @param {type} attribs
          * @returns {String}
          */
+
+        // outer level (no surrounting curly braces.)
         function makeDataBindAttribs(attribs) {
             if (attribs) {
                 return Object.keys(attribs)
                     .map(function (key) {
                         var value = attribs[key];
                         key = fixKey(key);
-                        if (typeof value === 'string') {
-                            //var escapedValue = value.replace(/\"/g, '\\"');
-                            // Ensure that all quoting within data-bind values is 
-                            // converted to single quotes, since the generated html
-                            // attribs are always quoted with double-quotes.
-                            var valueFixed = value.replace(/"/g, '\'');
-
-                            return key + ':' + valueFixed;
-                        }
-                        if (typeof value === 'object') {
-                            return key + ': {' + makeDataBindAttribs(value) + '}';
-                        }
-                        // just ignore invalid attributes for now
-                        // TODO: what is the proper thing to do?
-                        return '';
+                        return key + ': ' + makeDataBindAttribs2(value) + '';
                     })
                     .filter(function (field) {
                         return field ? true : false;
@@ -147,6 +135,36 @@ define([
                     .join(',');
             }
             return '';
+        }
+
+        function makeDataBindAttribs2(attribs) {
+            switch (typeof attribs) {
+            case 'object':
+                if (attribs instanceof Array) {
+                    return '[' + attribs.map(function (attrib) {
+                        return makeDataBindAttribs2(attrib);
+                    }).join(',') + ']';
+                } else if (attribs === null) {
+                    return 'null';
+                } else {
+                    return '{' + Object.keys(attribs)
+                        .map(function (key) {
+                            var value = attribs[key];
+                            key = fixKey(key);
+                            return key + ':' + makeDataBindAttribs2(value);
+                        })
+                        .filter(function (field) {
+                            return field ? true : false;
+                        })
+                        .join(',') + '}';
+                }
+            case 'string':
+                return attribs.replace(/"/g, '\'');
+            case 'number':
+                return String(attribs);
+            case 'boolean':
+                return String(attribs);
+            }
         }
 
         /**

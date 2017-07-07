@@ -86,7 +86,6 @@ define([
         return new Promise(function (resolve, reject) {
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
-                // console.log('onload', xhr);
                 if (xhr.status >= 300 && xhr.status < 400) {
                     reject(new RedirectException(xhr.status, 'Redirection', xhr));
                 }

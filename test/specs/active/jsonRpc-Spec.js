@@ -89,7 +89,6 @@ define([
                     } else if (result.length === 0) {
                         done.fail('No user profiles returned');
                     } else {
-                        // console.log(JSON.stringify(result, null, 3));
                         expect(result[0]).toBe(null);
                         done();
                         return null;
