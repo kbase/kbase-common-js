@@ -81,12 +81,34 @@ define([
                         return;
                     }
                     window.setTimeout(function () {
+                        if (!cache[item.id]) {
+                            // If on a wait-loop cycle we discover that the
+                            // cache item has been deleted, we volunteer
+                            // to attempt to fetch it ourselves.
+                            // The only case now for this is a cancellation
+                            // of the first request to any dynamic service,
+                            // which may cancel the initial service wizard
+                            // call rather than the service call.
+                            return reserveAndFetch({
+                                    id: item.id,
+                                    fetch: item.fetch
+                                })
+                                .then(function (result) {
+                                    // resolve(result);
+                                    // we resolve with the cache item just
+                                    // as if we had waited for it.
+                                    resolve(cache[item.id]);
+                                })
+                                .catch(function (err) {
+                                    reject(err);
+                                });
+                        }
                         if (!item.reserved) {
                             resolve(item);
                         } else {
                             var elapsed = new Date().getTime() - started;
                             if (elapsed > waiterTimeout) {
-                                reject(new Error('Timedout waiting for cache item to become availalbe'));
+                                reject(new Error('Timedout waiting for cache item to become available; timeout ' + waiterTimeout + ', waited ' + elapsed));
                             } else {
                                 waiter();
                             }
@@ -95,6 +117,27 @@ define([
                 }
                 waiter();
             });
+        }
+
+        function reserveAndFetch(arg) {
+            // now, reserve it.
+            reserveItem(arg.id, arg.fetch);
+
+            // and then fetch it.
+            var fetchPromise = arg.fetch()
+                .then(function (result) {
+                    setItem(arg.id, result, arg.fetch);
+                    return result;
+                })
+                .finally(function () {
+                    // If the fetch was cancelled, we need to remove
+                    // the reserved item. This should signal any queued waiters 
+                    // to spawn their own fetch.
+                    if (fetchPromise.isCancelled()) {
+                        delete cache[arg.id];
+                    }
+                });
+            return fetchPromise;
         }
 
         function getItemWithWait(arg) {
@@ -112,22 +155,17 @@ define([
                         return cached.value;
                     }
                 }
-                // now, reserve it.
-                reserveItem(arg.id);
 
-                // and then fetch it.
-                return arg.fetch()
-                    .then(function (result) {
-                        setItem(arg.id, result, arg.fetch);
-                        return result;
-                    });
+                return reserveAndFetch(arg);
             });
         }
 
-        function reserveItem(id) {
+        function reserveItem(id, fetch) {
             cache[id] = {
+                id: id,
                 createdAt: new Date().getTime(),
-                reserved: true
+                reserved: true,
+                fetch: fetch
             };
         }
 
@@ -138,6 +176,7 @@ define([
             } else {
                 item = {};
             }
+            item.id = id;
             item.value = value;
             item.createdAt = new Date().getTime();
             item.fetch = fetch;
