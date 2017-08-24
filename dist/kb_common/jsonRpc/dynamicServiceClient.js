@@ -202,7 +202,7 @@ define([
      *   username - username
      * rpcContext
      */
-    function GenericClient(arg) {
+    function DynamicServiceClient(arg) {
         // Establish an auth object which has properties token and user_id.
         var token = arg.token || (arg.auth ? arg.auth.token : null);
 
@@ -277,5 +277,5 @@ define([
                 });
         };
     }
-    return GenericClient;
+    return DynamicServiceClient;
 });

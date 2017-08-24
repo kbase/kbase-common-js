@@ -19,10 +19,16 @@ define([
         li = t('li'),
         a = t('a');
 
+    function buildSafeJsonString(value) {
+        var div = document.createElement('div');
+        div.innerText = value;
+        return div.innerHTML;
+    }
+
     function buildPresentableJson(data) {
         switch (typeof data) {
         case 'string':
-            return data;
+            return buildSafeJsonString(data);
         case 'number':
             return String(data);
         case 'boolean':
