@@ -215,6 +215,8 @@ define([
             throw new Error('The module was not provided');
         }
 
+
+
         var version = arg.version || null;
         if (arg.version === 'auto') {
             version = null;
