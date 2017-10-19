@@ -8,28 +8,28 @@
 
 /**
  * A route path ParamComponent
- * 
+ *
  * @typedef {Object} RoutePathComponent
  * @property {string} type - the type of the component, either 'param' or 'path'
  * @property {string} name - type name of the component. For param, it is the name of the query variable and of the resulting property in the param object; for path it is literal text of the path component.
- * 
+ *
  */
 
 /**
  * A definition of path and parameters which may match a route, and a payload.
- * 
+ *
  * @typedef {Object} RouteSpecification
  * @property {Array.<String|RoutePathComponent>} path - an array of path elements, either literal strings or path component objects
  * @property {Object} params - an object whose properties are parameters may be present in a query string
  * @property {Object} payload - an arbitrary object which represents the state associated with the route path.
  */
 
-/** 
+/**
  * A simple hash-path router service.
- * 
+ *
  * @module router
- * 
- * 
+ *
+ *
  * @returns {unresolved}
  */
 define([], function () {
@@ -40,6 +40,7 @@ define([], function () {
         this.original = request.original;
         this.path = request.path;
         this.params = request.params;
+        this.request = request.request;
     }
     NotFoundException.prototype = Object.create(Error.prototype);
     NotFoundException.prototype.constructor = NotFoundException;
@@ -56,7 +57,7 @@ define([], function () {
         function addRoute(pathSpec) {
             /*
              * The path spec is an array of elements. Each element is either a
-             * string, in which case it is a literal path component, 
+             * string, in which case it is a literal path component,
              * regular expression, which case it is matched on a path component,
              * object with type:param
              */
@@ -166,56 +167,55 @@ define([], function () {
                 };
             }
             routeloop:
-                for (i = 0; i < routes.length; i += 1) {
-                    route = routes[i];
-                    params = {};
+            for (i = 0; i < routes.length; i += 1) {
+                route = routes[i];
+                params = {};
 
-                    // We can use a route which is longer than the path if it has 
-                    // optional params at the end.
-                    if (route.path.length > req.path.length) {
-                        if (!req.path.slice(route.path.length).every(function (routePathElement) {
-                                return routePathElement.optional;
-                            })) {
-                            continue routeloop;
-                        }
-                    } else if (route.path.length < req.path.length) {
+                // We can use a route which is longer than the path if it has
+                // optional params at the end.
+                if (route.path.length > req.path.length) {
+                    if (!req.path.slice(route.path.length).every(function (routePathElement) {
+                        return routePathElement.optional;
+                    })) {
                         continue routeloop;
                     }
-
-                    pathloop:
-                        for (j = 0; j < req.path.length; j += 1) {
-                            routePathElement = route.path[j];
-                            requestPathElement = req.path[j];
-                            switch (routePathElement.type) {
-                            case 'literal':
-                                if (routePathElement.value !== requestPathElement) {
-                                    continue routeloop;
-                                }
-                                break;
-                            case 'options':
-                                if (!routePathElement.value.some(function (option) {
-                                        if (requestPathElement === option) {
-                                            return true;
-                                        }
-                                    })) {
-                                    continue routeloop;
-                                }
-                                break;
-                            case 'param':
-                                params[routePathElement.name] = requestPathElement;
-                                break;
-                            }
-                        }
-                        // First found route wins
-                        // TODO: fix this?
-                    foundRoute = {
-                        request: req,
-                        params: params,
-                        route: route
-                    };
-                    break routeloop;
+                } else if (route.path.length < req.path.length) {
+                    continue routeloop;
                 }
-                // The total params is the path params and query params
+
+                for (j = 0; j < req.path.length; j += 1) {
+                    routePathElement = route.path[j];
+                    requestPathElement = req.path[j];
+                    switch (routePathElement.type) {
+                    case 'literal':
+                        if (routePathElement.value !== requestPathElement) {
+                            continue routeloop;
+                        }
+                        break;
+                    case 'options':
+                        if (!routePathElement.value.some(function (option) {
+                            if (requestPathElement === option) {
+                                return true;
+                            }
+                        })) {
+                            continue routeloop;
+                        }
+                        break;
+                    case 'param':
+                        params[routePathElement.name] = requestPathElement;
+                        break;
+                    }
+                }
+                // First found route wins
+                // TODO: fix this?
+                foundRoute = {
+                    request: req,
+                    params: params,
+                    route: route
+                };
+                break routeloop;
+            }
+            // The total params is the path params and query params
             if (foundRoute) {
                 allowableParams = foundRoute.route.queryParams || {};
                 Object.keys(req.query).forEach(function (key) {
@@ -226,10 +226,20 @@ define([], function () {
                     }
                 });
             } else {
+                // return {
+                //     request: req,
+                //     params: params,
+                //     route: {
+                //         authorization: false,
+                //         widget: 'notFound'
+                //     }
+                // };
                 throw new NotFoundException({
+                    request: req,
+                    params: params,
+                    route: null,
                     original: req.original,
-                    path: req.path,
-                    params: params
+                    path: req.path
                 });
             }
             return foundRoute;
@@ -251,7 +261,7 @@ define([], function () {
         /**
          * A simple adapter to trigger a routing event for the current
          * browser hash-path.
-         * 
+         *
          * @returns {undefined}
          */
 
@@ -293,7 +303,7 @@ define([], function () {
                 if (location.replace) {
                     replacePath(finalPath);
                 } else {
-                    // We need to blow away the whole thing, since there will 
+                    // We need to blow away the whole thing, since there will
                     // be a hash there.
                     window.location.href = finalPath;
                 }
