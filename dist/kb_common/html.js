@@ -47,7 +47,7 @@ define([
 
         var tags = {};
         /**
-         * Given a simple object of keys and values, create a string which 
+         * Given a simple object of keys and values, create a string which
          * encodes them into a form suitable for the value of a style attribute.
          * Style attribute values are themselves attributes, but due to the limitation
          * of html attributes, they are embedded in a string:
@@ -115,7 +115,7 @@ define([
          * will remain as raw names/symbols/numbers, and quoted strings will retain
          * the quotes.
          * TODO: it would be smarter to detect if it was a quoted string
-         * 
+         *
          * @param {type} attribs
          * @returns {String}
          */
@@ -168,7 +168,7 @@ define([
         }
 
         /**
-         * Given a simple object of keys and values, create a string which 
+         * Given a simple object of keys and values, create a string which
          * encodes a set of html tag attributes.
          * String values escape the "
          * Boolean values either insert the attribute name or not
@@ -186,7 +186,7 @@ define([
                         var value = attribs[key],
                             attribName = camelToHyphen(key);
                         // The value may itself be an object, which becomes a special string.
-                        // This applies for "style" and "data-bind", each of which have a 
+                        // This applies for "style" and "data-bind", each of which have a
                         // structured string value.
                         // Another special case is an array, useful for space-separated
                         // attributes, esp. "class".
@@ -410,7 +410,7 @@ define([
         }
 
         /*
-         * 
+         *
          */
         function makeTableRotated(arg) {
             function columnLabel(column) {
@@ -698,7 +698,7 @@ define([
          * arg.tabs.label
          * arg.tabs.name
          * arg.tabs.content
-         * 
+         *
          * @param {type} arg
          * @returns {unresolved}
          */
@@ -772,7 +772,19 @@ define([
             ]);
         }
 
-        return {
+        function safeString(str) {
+            var anonDiv = document.createElement('div');
+            anonDiv.innerText = str;
+            var safeText = anonDiv.textContent || anonDiv.innerText || '';
+            return safeText;
+        }
+
+        function embeddableString(str) {
+            return str.replace(/\</, '&lt;')
+                      .replace(/\>/, '&gt;');
+        }
+
+        return Object.freeze({
             html: jsonToHTML,
             tag: tag,
             makeTable: makeTable,
@@ -787,7 +799,9 @@ define([
             loading: loading,
             flatten: flatten,
             makeList: makeList,
-            makeTabs: makeTabs
-        };
+            makeTabs: makeTabs,
+            safeString: safeString,
+            embeddableString: embeddableString
+        });
     }());
 });
