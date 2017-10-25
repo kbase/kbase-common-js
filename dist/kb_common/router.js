@@ -179,7 +179,6 @@ define([], function () {
                     })) {
                         continue routeloop;
                     }
-                    // continue routeloop;
                 } else if (route.path.length < req.path.length) {
                     continue routeloop;
                 }
