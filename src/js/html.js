@@ -780,37 +780,47 @@ define([
         }
 
         function embeddableString(str) {
-            return str.replace(/\</, '&lt;')
-                      .replace(/\>/, '&gt;');
+            return str.replace(/</, '&lt;')
+                .replace(/>/, '&gt;');
         }
 
         function makeStyles(styleDefs) {
             var classes = {},
                 style = tag('style');
+    
+            // generate unique class names.           
+            var classDefs, ruleDefs;
+            if (styleDefs.classes) {
+                classDefs = styleDefs.classes || {};
+                ruleDefs = styleDefs.rules || {};
+            } else {
+                classDefs = styleDefs;
+                ruleDefs = {};
+            }
 
-            // generate unique class names
-            Object.keys(styleDefs).forEach(function (key) {
+            Object.keys(classDefs).forEach(function (key) {
                 var id = key + '_' + genId();
-
+    
                 classes[key] = id;
-
-                if (!styleDefs[key].css) {
-                    styleDefs[key] = {
-                        css: styleDefs[key]
-                    }
+    
+                if (!classDefs[key].css) {
+                    classDefs[key] = {
+                        css: classDefs[key]
+                    };
                 }
-
-                styleDefs[key].id  = id;
+    
+                classDefs[key].id  = id;
             });
-
+    
             var sheet = [];
-            Object.keys(styleDefs).forEach(function (key) {
-                var style = styleDefs[key];
-                var pseudo = '';
+
+            // Classes
+            Object.keys(classDefs).forEach(function (key) {
+                var style = classDefs[key];
                 sheet.push([
                     '.',
-                    style.id + pseudo,
-                    '{',
+                    style.id,
+                    ' {',
                     makeStyleAttribs(style.css),
                     '}'
                 ].join(''));
@@ -823,8 +833,24 @@ define([
                             makeStyleAttribs(style.pseudo[key]),
                             '}'
                         ].join(''));
-                    })
-                }
+                    });
+                }               
+            });
+
+            // Rules
+            Object.keys(ruleDefs).forEach(function (ruleType) {
+                var rules = ruleDefs[ruleType];
+                Object.keys(rules).forEach(function (ruleName) {
+                    var rule = rules[ruleName];
+                    sheet.push([
+                        '@' + ruleType + ' ' + ruleName, 
+                        '{',
+                        Object.keys(rule).map(function(ruleKey) {
+                            return ruleKey + ' { ' + makeStyleAttribs(rule[ruleKey]) + ' } ';
+                        }).join(''),                            
+                        '}'
+                    ].join(''));
+                });
             });
             return {
                 classes: classes,
