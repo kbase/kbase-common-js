@@ -206,7 +206,6 @@ define([
         // Establish an auth object which has properties token and user_id.
         var token = arg.token || (arg.auth ? arg.auth.token : null);
 
-
         if (!arg.url) {
             throw new Error('The service discovery url was not provided');
         }
@@ -214,8 +213,6 @@ define([
         if (!arg.module) {
             throw new Error('The module was not provided');
         }
-
-
 
         var version = arg.version || null;
         if (arg.version === 'auto') {
@@ -265,17 +262,9 @@ define([
         };
 
         this.callFunc = function (funcName, params) {
-            //var start = new Date().getTime();
-            //var lookup, finish;
             return this.lookupModule()
                 .spread(function (serviceStatus) {
-                    //lookup = new Date().getTime();
                     return jsonRpc.request(serviceStatus.url, arg.module, funcName, params, options());
-                })
-                .then(function (result) {
-                    //finish = new Date().getTime();
-                    //console.log('call func', lookup - start, finish - lookup);
-                    return result;
                 });
         };
     }

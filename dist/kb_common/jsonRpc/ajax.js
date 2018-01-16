@@ -14,11 +14,11 @@ define([
             var xhr = new XMLHttpRequest();
             xhr.onload = function () {
                 if (xhr.status >= 300 && xhr.status < 400) {
-                    reject(new exceptions.RedirectError(xhr.status, 'Redirect Error', xhr));
+                    reject(new exceptions.RedirectError(xhr.status, xhr.statusText, xhr));
                 } else if (xhr.status >= 400 && xhr.status < 500) {
-                    reject(new exceptions.ClientError(xhr.status, 'Client Error', xhr));
+                    reject(new exceptions.ClientError(xhr.status, xhr.statusText, xhr));
                 } else if (xhr.status >= 500) {
-                    reject(new exceptions.ServerError(xhr.status, 'Server Error', xhr));
+                    reject(new exceptions.ServerError(xhr.status, xhr.statusText, xhr));
                 } else {
                     // var buf = new Uint8Array(xhr.response);
                     try {
@@ -86,10 +86,10 @@ define([
             var xhr = new XMLHttpRequest();
             xhr.onload = function (e) {
                 if (xhr.status >= 400 && xhr.status < 500) {
-                    reject(new exceptions.ClientError(xhr.status, 'Client Error', xhr));
+                    reject(new exceptions.ClientError(xhr.status, xhr.statusText, xhr));
                 }
                 if (xhr.status >= 500) {
-                    reject(new exceptions.ServerError(xhr.status, 'Server Error', xhr));
+                    reject(new exceptions.ServerError(xhr.status, xhr.statusText, xhr));
                 }
                 if (xhr.status >= 300 && xhr.status < 400) {
                     reject(new Error('Redirects not currently supported'));
