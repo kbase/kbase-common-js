@@ -14,13 +14,13 @@ define([
      * rpcContext
      */
     function GenericClient(arg) {
-        var module = arg.module;
+        var sdkModule = arg.module;
         var token = arg.token || (arg.auth ? arg.auth.token : null);
 
         if (!arg.url) {
             throw new Error('The service url was not provided');
         }
-        if (!module) {
+        if (!sdkModule) {
             throw new Error('The service module was not provided');
         }
 
@@ -33,7 +33,7 @@ define([
         }
 
         this.callFunc = function (funcName, params) {
-            return jsonRpc.request(arg.url, module, funcName, params, options());
+            return jsonRpc.request(arg.url, sdkModule, funcName, params, options());
         };
     }
     return GenericClient;
