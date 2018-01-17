@@ -174,7 +174,18 @@ define([], function () {
         this.params = params;
         this.url = url;
         this.originalError = error;
-        this.message = error.message;
+        // hack the message.
+        var message;
+        if (! error.message) {
+            var upstreamStackTrace = error.error;
+            if (typeof upstreamStackTrace === 'string') {
+                var lines = upstreamStackTrace.split('\n');
+                message = lines[0] || '';
+            }
+        } else {
+            message = error.message;
+        }
+        this.message = message;
         this.detail = error.error;
         this.type = error.name;
         this.code = error.code;
