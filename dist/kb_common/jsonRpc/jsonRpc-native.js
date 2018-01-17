@@ -56,10 +56,10 @@ define([
         if (typeof error.name !== 'string') {
             return false;
         }
-        if (typeof error.message !== 'string') {
+        if (typeof error.message !== 'string' && error.message !== null) {
             return false;
         }
-        if (! error.error) {
+        if (typeof error.error !== 'string') {
             return false;
         }
         if (typeof error.code !== 'number') {
@@ -140,7 +140,7 @@ define([
                         maybeErrorName = maybeStackTrace[maybeStackTrace.length - 2];
                     }
                 }
-
+console.log('here 2...', maybeErrorName);
                 switch (maybeErrorName) {
                 case 'AttributeError':
                     throw new exceptions.AttributeError(sdkModule, func, data);
