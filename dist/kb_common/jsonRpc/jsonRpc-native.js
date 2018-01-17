@@ -140,7 +140,6 @@ define([
                         maybeErrorName = maybeStackTrace[maybeStackTrace.length - 2];
                     }
                 }
-console.log('here 2...', maybeErrorName);
                 switch (maybeErrorName) {
                 case 'AttributeError':
                     throw new exceptions.AttributeError(sdkModule, func, data);
