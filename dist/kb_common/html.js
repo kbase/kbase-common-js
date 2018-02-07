@@ -786,7 +786,15 @@ define([
 
         function makeStyles(styleDefs) {
             var classes = {},
-                style = tag('style');
+                style = tag('style'),
+                scopes = {};
+
+            function addScope(key) {
+                if (!scopes[key]) {
+                    scopes[key] = key + '_' + genId();
+                }
+                return scopes[key];
+            }
     
             // generate unique class names.           
             var classDefs, ruleDefs;
@@ -834,7 +842,82 @@ define([
                             '}'
                         ].join(''));
                     });
-                }               
+                }
+                // scopes are simple class names which are a required as an 
+                // outer scope for this style to activate under this id; 
+                // commonly used for class names set dynamically: active, selected, etc.
+                // in an outer scope and should be reflected by one or more 
+                // internal styles.
+                if (style.scopes) {
+                    // we don't use the key provided, but create an id from it.
+                    Object.keys(style.scopes).forEach(function (key) {
+                        var id = addScope(key);
+                        sheet.push([
+                            '.',
+                            id,
+                            ' .',
+                            style.id, 
+                            '{',
+                            makeStyleAttribs(style.scopes[key]),
+                            '}'
+                        ].join(''));
+                    });
+                }
+                // modifiers are classes applied directly to another class; i.e. they
+                // are not used for scoping or in ineritance. 
+                if (style.modifiers) {
+                    Object.keys(style.modifiers).forEach(function (key) {
+                        var id = addScope(key);
+                        sheet.push([
+                            '.',
+                            style.id, 
+                            '.',
+                            id,                            
+                            '{',
+                            makeStyleAttribs(style.modifiers[key]),
+                            '}'
+                        ].join(''));
+                    });
+                }
+
+                // inner scopes are inner elemenst
+                if (style.inner) {
+                    Object.keys(style.inner).forEach(function (innerSelector) {
+                        // var id = addScope(key);
+                        var inner = style.inner[innerSelector];
+                        if (!inner.css) {
+                            inner.css = inner;
+                        }
+                        
+                        sheet.push([
+                            '.',
+                            style.id, 
+                            ' ',
+                            innerSelector,                            
+                            '{',
+                            makeStyleAttribs(inner.css),
+                            '}'
+                        ].join(''));
+
+
+                        if (inner.scopes) {
+                            Object.keys(inner.scopes).forEach(function (key) {
+                                var scopeId = addScope(key);
+                                sheet.push([
+                                    '.',
+                                    scopeId,
+                                    ' .',
+                                    style.id, 
+                                    ' ',
+                                    innerSelector,
+                                    '{',
+                                    makeStyleAttribs(inner.scopes[key]),
+                                    '}'
+                                ].join(''));
+                            });
+                        }                        
+                    });
+                }
             });
 
             // Rules
@@ -855,7 +938,10 @@ define([
             return {
                 classes: classes,
                 def: styleDefs,
-                sheet: style(sheet.join('\n'))
+                sheet: style({
+                    type: 'text/css'
+                }, sheet.join('\n')),
+                scopes: scopes
             };
         }
 
