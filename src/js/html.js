@@ -843,7 +843,7 @@ define([
                         ].join(''));
                     });
                 }
-                // scopes are simple class names which are a required as an 
+                // scopes are simple class names which are required as an 
                 // outer scope for this style to activate under this id; 
                 // commonly used for class names set dynamically: active, selected, etc.
                 // in an outer scope and should be reflected by one or more 
