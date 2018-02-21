@@ -59,7 +59,7 @@ define([
         if (typeof error.message !== 'string' && error.message !== null) {
             return false;
         }
-        if (typeof error.error !== 'string') {
+        if (typeof error.error !== 'string' && error.error !== null) {
             return false;
         }
         if (typeof error.code !== 'number') {

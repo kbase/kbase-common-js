@@ -33,7 +33,7 @@ define([
                 reject(new exceptions.TimeoutError(timeout, elapsed, 'Request timeout', xhr));
             };
             xhr.onerror = function () {
-                reject(new exceptions.ConnectionError('Request signalled error', xhr));
+                reject(new exceptions.ConnectionError('Request signaled error', xhr));
             };
             xhr.onabort = function () {
                 reject(new exceptions.AbortError('Request was aborted', xhr));
