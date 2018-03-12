@@ -111,15 +111,29 @@ define([
         if (args.icon) {
             icon = [' ', buildIcon(args.icon)];
         }
-        return div({
+        var panelAttributes = {
             class: classes.join(' '),
             dataElement: args.name,
             id: args.id
-        }, [
+        };
+        if (args.attributes) {
+            Object.keys(args.attributes).forEach(function (key) {
+                if (key in panelAttributes) {
+                    throw new Error('Key already defined in attributes: ' + key);
+                }
+                panelAttributes[key] = args.attributes[key];
+            });
+        }
+        return div(panelAttributes, [
             (function () {
                 if (args.title) {
-                    return div({ class: 'panel-heading' }, [
-                        div({ class: 'panel-title', dataElement: 'title' }, [args.title, icon])
+                    return div({ 
+                        class: 'panel-heading' 
+                    }, [
+                        div({ 
+                            class: 'panel-title', 
+                            dataElement: 'title' 
+                        }, [args.title, icon])
                     ]);
                 }
             }()),
