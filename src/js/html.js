@@ -158,12 +158,16 @@ define([
                         })
                         .join(',') + '}';
                 }
+            case 'function':
+                return attribs.toString();
             case 'string':
                 return attribs.replace(/"/g, '\'');
             case 'number':
                 return String(attribs);
             case 'boolean':
                 return String(attribs);
+            default: 
+                throw new Error('Type not supported for data-bind attribute: ' + (typeof attribs));
             }
         }
 
