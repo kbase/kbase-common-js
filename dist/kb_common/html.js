@@ -836,17 +836,36 @@ define([
                     makeStyleAttribs(style.css),
                     '}'
                 ].join(''));
+
+                // Pseudo classes
                 if (style.pseudo) {
-                    Object.keys(style.pseudo).forEach(function (key) {
+                    style.pseudoClasses = style.pseudo;
+                }
+                if (style.pseudoClasses) {
+                    Object.keys(style.pseudoClasses).forEach(function (key) {
                         sheet.push([
                             '.',
                             style.id + ':' + key,
                             '{',
-                            makeStyleAttribs(style.pseudo[key]),
+                            makeStyleAttribs(style.pseudoClasses[key]),
                             '}'
                         ].join(''));
                     });
                 }
+
+                // pseudo elements
+                if (style.pseudoElements) {
+                    Object.keys(style.pseudoElements).forEach(function (key) {
+                        sheet.push([
+                            '.',
+                            style.id + '::' + key,
+                            '{',
+                            makeStyleAttribs(style.pseudoElements[key]),
+                            '}'
+                        ].join(''));
+                    });
+                }
+
                 // scopes are simple class names which are required as an 
                 // outer scope for this style to activate under this id; 
                 // commonly used for class names set dynamically: active, selected, etc.
