@@ -98,7 +98,7 @@ define([
                 try {
                     return JSON.parse(response).result;
                 } catch (ex) {
-                    throw new exceptions.RequestValueError(sdkModule, func, params, response, 'Error processing response as json', ex.message);
+                    throw new exceptions.ResponseValueError(sdkModule, func, params, response, 'Error processing response as json', ex.message);
                 }
             })
             // Note that we now only filer for client and server errors. Other errors
