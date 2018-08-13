@@ -16,9 +16,9 @@ define([
             loginUrl: testConfig.services.auth.login.url
         });
         return session.login({
-                username: username,
-                password: password
-            })
+            username: username,
+            password: password
+        })
             .then(function (result) {
                 return result.token;
             });
@@ -51,8 +51,8 @@ define([
         it('Fetch Erik\'s profile', function (done) {
             // NB: called functions take an array of positional arguments
             profileService.callFunc('get_user_profile', [
-                    ['eapearson']
-                ])
+                ['eapearson']
+            ])
                 .then(function (result) {
                     if (result[0].length > 1) {
                         done.fail('Too many user profiles returned - one expected');
@@ -81,8 +81,8 @@ define([
                 module: 'UserProfile'
             });
             profileService.callFunc('get_user_profile', [
-                    ['eapearson123']
-                ])
+                ['eapearson123']
+            ])
                 .spread(function (result) {
                     if (result.length > 1) {
                         done.fail('Too many user profiles returned - one expected');
@@ -106,8 +106,8 @@ define([
                 module: 'UserProfile'
             });
             profileService.callFunc('get_user_profile', [
-                    ['eapearson']
-                ])
+                ['eapearson']
+            ])
                 .spread(function (result) {
                     done.fail('Should not have succeeded');
                     return null;
@@ -129,8 +129,8 @@ define([
                 timeout: 1000
             });
             profileService.callFunc('get_user_profile', [
-                    ['eapearson']
-                ])
+                ['eapearson']
+            ])
                 .spread(function (result) {
                     done.fail('Should not have succeeded');
                     return null;
@@ -153,8 +153,8 @@ define([
                 timeout: 1000
             });
             profileService.callFunc('get_user_profile', [
-                    ['eapearson']
-                ])
+                ['eapearson']
+            ])
                 .spread(function (result) {
                     done.fail('Should not have succeeded');
                     return null;
@@ -177,8 +177,8 @@ define([
                 timeout: 1000
             });
             profileService.callFunc('get_user_profile', [
-                    ['eapearson']
-                ])
+                ['eapearson']
+            ])
                 .spread(function (result) {
                     done.fail('Should not have succeeded');
                     return null;
@@ -206,8 +206,8 @@ define([
                 module: 'Workspace'
             });
             workspaceService.callFunc('get_workspace_info', [{
-                    id: testConfig.services.workspace.publicId
-                }])
+                id: testConfig.services.workspace.publicId
+            }])
                 .then(function (result) {
                     expect(result.length).toBe(1);
                     if (result.length > 1) {
@@ -235,10 +235,10 @@ define([
             });
             var ref = testConfig.services.workspace.publicObjectRef;
             workspaceService.callFunc('get_object_info_new', [{
-                    objects: [{
-                        ref: ref
-                    }]
-                }])
+                objects: [{
+                    ref: ref
+                }]
+            }])
                 .then(function (result) {
                     expect(result.length).toBe(1);
                     if (result.length > 1) {
@@ -272,8 +272,8 @@ define([
             });
             var id = testConfig.services.workspace.privateId;
             workspaceService.callFunc('get_workspace_info', [{
-                    id: id
-                }])
+                id: id
+            }])
                 .then(function (result) {
                     done.fail('Expected a public call to private workspace to fail');
                     return null;
