@@ -90,9 +90,9 @@ define([
                             // which may cancel the initial service wizard
                             // call rather than the service call.
                             return reserveAndFetch({
-                                    id: item.id,
-                                    fetch: item.fetch
-                                })
+                                id: item.id,
+                                fetch: item.fetch
+                            })
                                 .then(function (result) {
                                     // resolve(result);
                                     // we resolve with the cache item just
@@ -108,6 +108,7 @@ define([
                         } else {
                             var elapsed = new Date().getTime() - started;
                             if (elapsed > waiterTimeout) {
+                                delete cache[item.id];
                                 reject(new Error('Timedout waiting for cache item to become available; timeout ' + waiterTimeout + ', waited ' + elapsed));
                             } else {
                                 waiter();
