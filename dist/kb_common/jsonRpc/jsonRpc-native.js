@@ -77,7 +77,7 @@ define([
                 id: options.id || String(Math.random()).slice(2)
             },
             header = {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json; charset=utf-8'
             };
 
         if (options.rpcContext) {

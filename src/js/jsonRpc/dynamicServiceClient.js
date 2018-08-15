@@ -93,7 +93,7 @@ define([
                                 id: item.id,
                                 fetch: item.fetch
                             })
-                                .then(function (result) {
+                                .then(function () {
                                     // resolve(result);
                                     // we resolve with the cache item just
                                     // as if we had waited for it.
