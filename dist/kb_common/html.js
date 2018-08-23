@@ -400,16 +400,32 @@ define([
             ]);
         }
 
-        function loading(msg) {
+        function loading(msg, size) {
             var span = tag('span'),
                 i = tag('i'),
                 prompt;
             if (msg) {
                 prompt = msg + '... &nbsp &nbsp';
             }
+            var iconSize = 'fa-2x';
+            if (size) {
+                switch (size) {
+                case 'normal':
+                    iconSize = null;
+                    break;
+                case 'large': 
+                    iconSize = 'fa-2x';
+                    break;
+                case 'extra-large':
+                    iconSize = 'fa-3x';
+                    break;
+                }
+            }
             return span([
                 prompt,
-                i({ class: 'fa fa-spinner fa-pulse fa-2x fa-fw margin-bottom' })
+                i({ 
+                    class: 'fa fa-spinner fa-pulse fa-fw margin-bottom' + (iconSize ? ' ' + iconSize : '')
+                })
             ]);
         }
 
