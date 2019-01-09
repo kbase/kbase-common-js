@@ -67,8 +67,7 @@ define([], function () {
 
             // fix up the path. This business is to make it easier to have
             // compact path specifications.
-            var path = pathSpec.path,
-                fixedPath;
+            var path = pathSpec.path;
             if (typeof path === 'string') {
                 path = [path];
             }
@@ -97,7 +96,7 @@ define([], function () {
         }
 
         function parseQueryString(s) {
-            var fields = s.split(/[\?\&]/),
+            var fields = s.split(/[?&]/),
                 params = {};
             fields.forEach(function (field) {
                 if (field.length > 0) {
@@ -292,6 +291,10 @@ define([], function () {
                 .join('/');
             if (location.params) {
                 queryString = paramsToQuery(location.params);
+            }
+            // Oops, may be encoded as query
+            if (location.query) {
+                queryString = paramsToQuery(location.query);
             }
             if (queryString) {
                 finalPath = normalizedPath + '?' + queryString;
